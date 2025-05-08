@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: eprescription-out-of-stock
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/eprescription-out-of-stock
+    username: root
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  app:
+    jwtSecret: abcdefghijKLMNOPQRSTUvwxyz=====LEMOBILE====0123456987
+    jwtExpirationMs:  21600000
+    refreshExpirationMs: 18000000
+
+
+file:
+  dir-attachments:  /home/yemane/Documents/Medco/lemobile/attachments
+
+servlet:
+  multipart:
+    enabled: true
+    max-file-size: 100MB
+    max-request-size: 120MB
+    file-size-threshold: 2MB
+    resolve-lazily: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+server:
+  port: 8900
