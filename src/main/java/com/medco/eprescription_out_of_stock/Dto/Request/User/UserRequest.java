@@ -1,23 +1,27 @@
 package com.medco.eprescription_out_of_stock.Dto.Request.User;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+
+import com.medco.eprescription_out_of_stock.shared.enums.UserType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import com.medco.eprescription_out_of_stock.shared.enums.Status;
-import com.medco.eprescription_out_of_stock.shared.enums.UserType;
 
-@Getter
+import java.util.Date;
+
 @Setter
+@Getter
 public class UserRequest {
 
     @NotBlank
-    @Size(min = 5, max = 50)
+    @Size(max = 50)
     @Email
     private String email;
+
+    @NotBlank
+    @Size(min = 6, max = 40)
+    private String password;
 
     @NotBlank
     @Size(min = 2, max = 25)
@@ -37,21 +41,18 @@ public class UserRequest {
 
     @NotBlank
     @Size(min = 1, max = 10)
-    private String gender;
+    private String Gender;
+
+    private Date dateOfBirth;
 
     @NotBlank
     @Size(min = 9, max = 13)
     private String mobilePhone;
 
-    private Status userStatus;
-
-    @Enumerated(EnumType.STRING)
-    private UserType userType;
+//    private UserStatus userStatus;
 
     @NotNull
     private String roleUuid;
 
-    private String branchId;
-
-
+    private UserType userType;
 }

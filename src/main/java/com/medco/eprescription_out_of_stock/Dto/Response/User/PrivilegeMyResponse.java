@@ -5,8 +5,8 @@ import lombok.Setter;
 
 import java.util.List;
 
-@Setter
 @Getter
+@Setter
 public class PrivilegeMyResponse {
     private long totalPages;
     private List<PrivilegeResponse> response;

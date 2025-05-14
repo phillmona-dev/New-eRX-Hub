@@ -2,6 +2,8 @@ package com.medco.eprescription_out_of_stock.Security.Services;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.medco.eprescription_out_of_stock.Entitiy.User.User;
 import com.medco.eprescription_out_of_stock.shared.enums.Status;
+import com.medco.eprescription_out_of_stock.shared.enums.UserStatus;
+import com.medco.eprescription_out_of_stock.shared.enums.UserType;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -33,12 +35,13 @@ public class UserDetailsImpl implements UserDetails {
     private String grandFatherName;
     private String gender;
     private String mobilePhone;
-    private Status userStatus;
+    private UserStatus userStatus;
     private String profilePicture;
+    private UserType userType;
     private Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(String userUuid, String email, String password, String roleUuid, String roleName , String title, String firstName,
-                           String fatherName, String grandFatherName, String gender, String mobilePhone, Status userStatus, String profilePicture,
+                           String fatherName, String grandFatherName, String gender, String mobilePhone, UserStatus userStatus, UserType userType,
                            Collection<? extends GrantedAuthority> authorities) {
         this.userUuid = userUuid;
         this.email = email;
@@ -52,7 +55,7 @@ public class UserDetailsImpl implements UserDetails {
         this.gender = gender;
         this.mobilePhone = mobilePhone;
         this.userStatus = userStatus;
-        this.profilePicture = profilePicture;
+        this.userType=userType;
         this.authorities = authorities;
     }
 
@@ -64,7 +67,7 @@ public class UserDetailsImpl implements UserDetails {
 
         return new UserDetailsImpl(user.getUserUuid(), user.getEmail(), user.getPassword(), user.getRoleUuid(), user.getRoleName(),
                 user.getTitle(), user.getFirstName(), user.getFatherName(), user.getGrandFatherName(), user.getGender(),
-                user.getMobilePhone(),user.getUserStatus(), user.getProfilePicture(), authorities);
+                user.getMobilePhone(),user.getUserStatus(),user.getUserType(), authorities);
     }
 
     @Override

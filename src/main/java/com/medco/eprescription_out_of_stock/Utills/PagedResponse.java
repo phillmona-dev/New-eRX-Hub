@@ -1,5 +1,4 @@
 package com.medco.eprescription_out_of_stock.Utills;
-import com.medco.eprescription_out_of_stock.Dto.Response.User.Prescription.PrescriptionOutOfStockResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

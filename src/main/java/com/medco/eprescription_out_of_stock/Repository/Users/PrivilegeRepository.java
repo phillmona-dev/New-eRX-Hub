@@ -39,8 +39,8 @@ public interface PrivilegeRepository extends JpaRepository<Privilege, Long> {
     Page<Privilege> findByPrivilegeNameContainingOrPrivilegeDescriptionContainingOrPrivilegeCategoryContaining(String searchTerm1, String searchTerm2, String searchTerm3,
                                                                                                                Pageable pageRequest);
 
-        @Query("SELECT r.privileges FROM Role r WHERE r.roleUuid = :roleUuid")
-        List<Privilege> findPrivilegesByRoleUuid(String roleUuid);
+    @Query("SELECT r.privileges FROM Role r WHERE r.roleUuid = :roleUuid")
+    List<Privilege> findPrivilegesByRoleUuid(String roleUuid);
 
     @Query("SELECT p.privilegeName FROM Privilege p WHERE p.privilegeUuid = :privilegeUuid")
     String findPrivilegeNameByUuid(String privilegeUuid);

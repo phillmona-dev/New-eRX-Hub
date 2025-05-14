@@ -1,5 +1,7 @@
 package com.medco.eprescription_out_of_stock.Entitiy.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.medco.eprescription_out_of_stock.shared.Audit;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -7,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.medco.eprescription_out_of_stock.shared.Audit;
 
 import java.io.Serial;
 import java.util.HashSet;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "roles", uniqueConstraints = {
         @UniqueConstraint(columnNames = "roleName"),
-        @UniqueConstraint(columnNames = "role_uuid")  // Ensure the column name matches the database
+        @UniqueConstraint(columnNames = "role_uuid")
 })
 public class Role extends Audit {
     @Serial
@@ -48,10 +49,17 @@ public class Role extends Audit {
             inverseJoinColumns = @JoinColumn(name = "privilege_uuid", referencedColumnName = "privilege_uuid"))
     private Set<Privilege> privileges = new HashSet<>();
 
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RolePrivilege> rolePrivileges = new HashSet<>();
+
     public Role(String roleName, String roleDescription) {
         this.roleName = roleName;
         this.roleDescription = roleDescription;
     }
-}
 
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "user_id")
+    private User user;
+}
 

@@ -1,14 +1,22 @@
 package com.medco.eprescription_out_of_stock.Dto.Response.User;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class PrivilegeResponse {
+
     private String privilegeName;
     private String privilegeDescription;
     private String privilegeCategory;
     private String privilegeUuid;
     private long totalPages;
+
+
+
 }

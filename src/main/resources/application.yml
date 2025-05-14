@@ -23,6 +23,18 @@ spring:
 file:
   dir-attachments:  /home/yemane/Documents/Medco/lemobile/attachments
 
+
+afromessage:
+  api:
+    url: "https://api.afromessage.com/api/send"
+    token: eyJhbGciOiJIUzI1NiJ9.eyJpZGVudGlmaWVyIjoiYkpUZ1VZVzJoaTZnaFo5QTJDSjBaU3pzeWhLZ2ZtVWsiLCJleHAiOjE4OTM0NzkxNjUsImlhdCI6MTczNTcxMjc2NSwianRpIjoiMmVlMGNmOWUtOGFlMC00NDQ0LWFjY2UtODdhNjU0MjhiNmQxIn0.D5_eQNtA4HNaNuVo1O6pydwaZ-sn3fpWZa-g4rjl1IU
+    identifierId: e80ad9d8-adf3-463f-80f4-7c4b39f7f164
+kenema:
+  api:
+    url: "http://localhost:8800/api/v1/reports"
+
+
+
 servlet:
   multipart:
     enabled: true
@@ -40,4 +52,4 @@ springdoc:
     enabled: true
 
 server:
-  port: 8900
+  port: 8400

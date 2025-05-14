@@ -1,8 +1,7 @@
-package com.medco.eprescription_out_of_stock.Dto.Response.User.Prescription;
+package com.medco.eprescription_out_of_stock.Dto.Response.Prescription;
 
 
 import com.medco.eprescription_out_of_stock.Dto.Request.Prescription.MedicineList;
-import com.medco.eprescription_out_of_stock.Dto.Request.Prescription.PetientDetail;
 import lombok.Getter;
 import lombok.Setter;
 

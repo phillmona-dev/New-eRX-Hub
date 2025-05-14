@@ -1,16 +1,8 @@
 package com.medco.eprescription_out_of_stock.ServiceImp.User;
-import com.medco.eprescription_out_of_stock.Repository.Users.AuthRepository;
-import com.medco.eprescription_out_of_stock.Repository.Users.RoleRepository;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.AuthRequest;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.ResetPasswordRequest;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.SignUpRequest;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.UploadProfileRequest;
-import com.medco.eprescription_out_of_stock.Dto.Response.User.JwtResponse;
-import com.medco.eprescription_out_of_stock.Dto.Response.User.MessageResponse;
-import com.medco.eprescription_out_of_stock.Dto.Response.User.UserMyResponse;
-import com.medco.eprescription_out_of_stock.Dto.Response.User.UserResponse;
-import com.medco.eprescription_out_of_stock.Entitiy.User.Role;
-import com.medco.eprescription_out_of_stock.Entitiy.User.User;
+import com.medco.eprescription_out_of_stock.Dto.Request.User.*;
+import com.medco.eprescription_out_of_stock.Dto.Response.User.*;
+import com.medco.eprescription_out_of_stock.Entitiy.User.*;
+import com.medco.eprescription_out_of_stock.Repository.Users.*;
 import com.medco.eprescription_out_of_stock.Exception.BadRequestException;
 import com.medco.eprescription_out_of_stock.Exception.EmailAlreadyExists;
 import com.medco.eprescription_out_of_stock.Exception.InvalidPhoneException;
@@ -18,12 +10,15 @@ import com.medco.eprescription_out_of_stock.Security.Jwt.JwtUtils;
 import com.medco.eprescription_out_of_stock.Security.Services.UserDetailsImpl;
 import com.medco.eprescription_out_of_stock.Service.User.UserService;
 import com.medco.eprescription_out_of_stock.shared.enums.Status;
+import com.medco.eprescription_out_of_stock.shared.enums.UserStatus;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,31 +28,61 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import com.medco.eprescription_out_of_stock.shared.utils.GenerateRandomString;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
+
     @Autowired
-    private AuthenticationManager authenticationManager;
+    UserRepository userRepository;
+
     @Autowired
-    private JwtUtils jwtUtils;
+    RoleRepository roleRepository;
+
+    @Autowired
+    PasswordEncoder encoder;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    PhysicianDetailRepository physicianDetailRepository;
+
+    @Autowired
+    PharmacistDetailRepository pharmacistDetailRepository;
+
+    @Autowired
+    RoleRequestedRepository roleRequestedRepository;
+
+    @Autowired
+    EvidenceDocumentRepository  evidenceDocumentRepository;
+
+    @Autowired
+    HealthCenterRepository healthCenterRepository;
+
     @Autowired
     private AuthRepository authRepository;
+
     @Autowired
-    private RoleRepository roleRepository;
+    JwtUtils jwtUtils;
+
     @Autowired
-    private GenerateRandomString generateRandomString;
-    @Autowired
-    private PasswordEncoder encoder;
+    private PatientDetailRepository patientDetailRepository;
+
+    @Value("${file.dir-attachments}")
+    private String uploadDirectory;
+
 
 
     @Override
@@ -78,7 +103,6 @@ public class UserServiceImpl implements UserService {
                 userDetails.getUserUuid(),
                 userDetails.getEmail(),
                 userDetails.getRoleUuid(),
-                userDetails.getRoleName(),
                 userDetails.getTitle(),
                 userDetails.getFirstName(),
                 userDetails.getFatherName(),
@@ -86,8 +110,10 @@ public class UserServiceImpl implements UserService {
                 userDetails.getGender(),
                 userDetails.getMobilePhone(),
                 userDetails.getUserStatus(),
-                userDetails.getProfilePicture(),
+                userDetails.getUserType(),
                 roles
+
+
         ));
     }
 
@@ -169,7 +195,7 @@ public class UserServiceImpl implements UserService {
         for (User u : userList) {
             UserResponse ur = new UserResponse();
             BeanUtils.copyProperties(u, ur);
-            
+
             userResponseList.add(ur);
         }
 
@@ -212,11 +238,11 @@ public class UserServiceImpl implements UserService {
         if (user == null)
             throw new RuntimeException("User not found.");
 
-        user.setProfilePicture(newFileName);
-        User updatesUserDetails = authRepository.save(user);
-        if (updatesUserDetails.getProfilePicture() != null) {
-            returnValue = "Profile picture Saved";
-        }
+//        user.setProfilePicture(newFileName);
+//        User updatesUserDetails = authRepository.save(user);
+//        if (updatesUserDetails.getProfilePicture() != null) {
+//            returnValue = "Profile picture Saved";
+//        }
 
         return ResponseEntity.ok(new MessageResponse(returnValue));
     }
@@ -258,9 +284,9 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("User not found.");
         }
 
-        user.setUserStatus(Status.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
         User updatedUser = authRepository.save(user);
-        if (updatedUser.getUserStatus() == Status.ACTIVE) {
+        if (updatedUser.getUserStatus() == UserStatus.ACTIVE) {
             returnValue = "Account Verified Successfully";
         }
         return ResponseEntity.ok(new MessageResponse(returnValue));
@@ -331,13 +357,148 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public void changeUserStatus(Long userId, Status statusEnum) {
+    public void changeUserStatus(Long userId, UserStatus statusEnum) {
         User user = authRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
         user.setUserStatus(statusEnum);
         authRepository.save(user);
     }
+
+    @Override
+    public ResponseEntity<?> registerPhysician(PhysicianSignupRequest physicianSignupRequest) {
+
+        if (userRepository.existsByEmail(physicianSignupRequest.getEmail())) {
+            throw new RuntimeException("Error: Email is already in use!");
+        }
+        if (userRepository.existsByMobilePhone(physicianSignupRequest.getMobilePhone())) {
+            throw new RuntimeException("Error: Mobile Phone is already in use!");
+        }
+
+        User user = new User();
+        user.setUserStatus(UserStatus.PENDING);
+        BeanUtils.copyProperties(physicianSignupRequest, user);
+        String roleName = getRoleNameByUuid(physicianSignupRequest.getRoleUuid());
+        user.setRoleName(roleName);
+        user.setPassword(encoder.encode(physicianSignupRequest.getPassword()));
+        User savedUser = userRepository.save(user);
+
+        System.out.println("User registration: " + savedUser);
+
+        UserPhysicianDetail physician = new UserPhysicianDetail();
+
+        physician.setUser(savedUser);
+        physician.setGraduatedFrom(physicianSignupRequest.getGraduatedFrom());
+        physician.setGraduationYear(physicianSignupRequest.getGraduationYear());
+        physician.setEducationLevel(physicianSignupRequest.getEducationLevel());
+        physician.setQualificationLevel(physicianSignupRequest.getQualificationLevel());
+        physician.setLicenceExpirationDate(physicianSignupRequest.getLicenceExpirationDate());
+        physician.setLicenceNo(physicianSignupRequest.getLicenceNo());
+        physician.setInstitutionName(physicianSignupRequest.getInstitutionName());
+
+        UserPhysicianDetail savedPhysician = physicianDetailRepository.save(physician);
+
+
+
+        try {
+            if (physicianSignupRequest.getFiles() != null) {
+                for (MultipartFile file : physicianSignupRequest.getFiles()) {
+                    if (!file.isEmpty()) {
+                        String originalFileName = file.getOriginalFilename();
+                        String fileExtension = originalFileName.substring(originalFileName.lastIndexOf(".") + 1).toLowerCase();
+                        String newFileName = System.currentTimeMillis() + "_" + savedPhysician.getId() + "." + fileExtension;
+                        String fullFilePath = uploadDirectory + File.separator + newFileName;
+
+                        EvidenceDocument document = new EvidenceDocument();
+                        document.setFileName(newFileName);
+                        document.setFileSize(file.getSize());
+                        document.setUser(savedUser);
+
+                        try (FileOutputStream fos = new FileOutputStream(new File(fullFilePath))) {
+                            fos.write(file.getBytes());
+                        } catch (IOException e) {
+                            throw new RuntimeException("Error saving file: " + e.getMessage(), e);
+                        }
+
+                        evidenceDocumentRepository.save(document);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            System.err.println("File processing error: " + ex.getMessage());
+            throw new RuntimeException("Failed to process files for physician registration", ex);
+        }
+
+
+
+        RequestedRole requestedRole = new RequestedRole();
+        requestedRole.setUser(savedUser);
+        requestedRole.setRequestDate(LocalDateTime.now());
+        requestedRole.setRoleUuid(physicianSignupRequest.getRoleUuid());
+        roleRequestedRepository.save(requestedRole);
+
+        UserResponse userResponse = new UserResponse();
+        BeanUtils.copyProperties(savedUser, userResponse);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body("Physician registered successfully");
+
+
+    }
+
+
+
+
+    @Override
+    public ResponseEntity<PharmacistResponse> registerPharmacist(PharmacistSignUpRequest pharmacistSignUpRequest) {
+        return null;
+
+
+    }
+
+
+
+    @Override
+    public ResponseEntity<?> registerPatient(PatientRequest patientRequest) {
+
+
+        if (userRepository.existsByEmail(patientRequest.getEmail())) {
+            throw new RuntimeException("Error: Email is already in use!");
+        }
+        if (userRepository.existsByMobilePhone(patientRequest.getMobilePhone())) {
+            throw new RuntimeException("Error: Mobile Phone is already in use!");
+        }
+
+
+        User user = new User();
+        user.setUserStatus(UserStatus.PENDING);
+        BeanUtils.copyProperties(patientRequest, user);
+        String roleName = getRoleNameByUuid(patientRequest.getRoleUuid());
+        user.setRoleName(roleName);
+        user.setPassword(encoder.encode(patientRequest.getPassword()));
+        User savedUser = userRepository.save(user);
+
+        UserPatientDetail patient = new UserPatientDetail();
+        patient.setUser(savedUser);
+        patient.setMPN(patientRequest.getMPN());
+        patient.setMRN(patientRequest.getMRN());
+        UserPatientDetail savedPatient = patientDetailRepository.save(patient);
+
+
+        return ResponseEntity.status(HttpStatus.CREATED).body("Patient registered successfully");
+
+
+
+    }
+
+
+    public String getRoleNameByUuid(String roleUuid) {
+        Role role = roleRepository.findByRoleUuid(roleUuid);
+        if (role == null){
+            throw new RuntimeException("role not found with role uuid" + roleUuid);
+        }
+        return role.getRoleName();
+    }
+
 
 }
 

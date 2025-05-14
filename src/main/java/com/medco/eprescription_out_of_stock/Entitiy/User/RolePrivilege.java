@@ -1,10 +1,10 @@
 package com.medco.eprescription_out_of_stock.Entitiy.User;
+import com.medco.eprescription_out_of_stock.shared.Audit;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.medco.eprescription_out_of_stock.shared.Audit;
 
 import java.io.Serial;
 
@@ -15,6 +15,7 @@ import java.io.Serial;
 @Entity
 @Table(name = "role_privileges")
 public class RolePrivilege extends Audit {
+
     @Serial
     private static final long serialVersionUID = -4814904549349101427L;
 
@@ -26,13 +27,7 @@ public class RolePrivilege extends Audit {
     @JoinColumn(name = "role_uuid", referencedColumnName = "role_uuid", nullable = false)
     private Role role;
 
-    // Correct mapping for privilege UUID
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "privilege_uuid", referencedColumnName = "privilege_uuid", nullable = false)  // Ensure the correct column name
+    @JoinColumn(name = "privilege_uuid", referencedColumnName = "privilege_uuid", nullable = false)
     private Privilege privilege;
 }
-
-
-
-
-

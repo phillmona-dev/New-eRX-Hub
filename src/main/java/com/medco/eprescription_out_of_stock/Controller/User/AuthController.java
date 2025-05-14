@@ -1,14 +1,15 @@
 package com.medco.eprescription_out_of_stock.Controller.User;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.AuthRequest;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.ResetPasswordRequest;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.SignUpRequest;
+import com.medco.eprescription_out_of_stock.Dto.Request.User.*;
 import com.medco.eprescription_out_of_stock.Dto.Response.User.MessageResponse;
+import com.medco.eprescription_out_of_stock.Dto.Response.User.PharmacistResponse;
 import com.medco.eprescription_out_of_stock.Dto.Response.User.UserMyResponse;
 import com.medco.eprescription_out_of_stock.Dto.Response.User.UserResponse;
 import com.medco.eprescription_out_of_stock.Exception.BadRequestException;
 import com.medco.eprescription_out_of_stock.Service.User.UserService;
-import com.medco.eprescription_out_of_stock.shared.enums.Status;
+import com.medco.eprescription_out_of_stock.shared.enums.UserStatus;
+import io.jsonwebtoken.io.IOException;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
@@ -75,7 +76,7 @@ public class AuthController {
             @PathVariable Long userId,
             @RequestParam String status) {
         try {
-            Status statusEnum = Status.valueOf(status.toUpperCase());
+            UserStatus statusEnum = UserStatus.valueOf(status.toUpperCase());
             userService.changeUserStatus(userId, statusEnum);
             return "User status updated successfully to " + statusEnum + ".";
         } catch (IllegalArgumentException e) {
@@ -83,7 +84,6 @@ public class AuthController {
 
         }
     }
-
 
 
     @PostMapping("/reset-password")
@@ -121,4 +121,63 @@ public class AuthController {
 
 
 
+
+    @PostMapping(value = "/physician-sign-up", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> signupPhysicianWithEvidence(
+
+            @ModelAttribute PhysicianSignupRequest physicianSignupRequest) {
+
+        try {
+
+            ResponseEntity<?> createdPhysician = userService.registerPhysician(physicianSignupRequest);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdPhysician);
+
+        } catch (IOException e) {
+            String errorMessage = "Failed to process files for physician registration";
+            System.err.println(errorMessage + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+        } catch (Exception e) {
+            String errorMessage = "An unexpected error occurred during physician registration";
+            System.err.println(errorMessage + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+        }
+    }
+
+
+    @PostMapping(value = "/pharmacist-sign-up", consumes = {"multipart/form-data"})
+    public ResponseEntity<PharmacistResponse> signupPharmacistWithEvidence(
+            @ModelAttribute PharmacistSignUpRequest pharmacistSignUpRequest) {
+
+        try {
+            ResponseEntity<PharmacistResponse> createdPharmacist = userService.registerPharmacist(pharmacistSignUpRequest);
+
+            return createdPharmacist;
+
+        } catch (IOException e) {
+            String errorMessage = "Failed to process files for pharmacist registration";
+            System.err.println(errorMessage + ": " + e.getMessage());
+            PharmacistResponse errorResponse = new PharmacistResponse(false, errorMessage);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+
+        } catch (Exception e) {
+            String errorMessage = "An unexpected error occurred during pharmacist registration";
+            System.err.println(errorMessage + ": " + e.getMessage());
+            PharmacistResponse errorResponse = new PharmacistResponse(false, errorMessage);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+
+
+
+    }
+
+
+    @PostMapping("/patient-sign-up")
+    public ResponseEntity<?> savePatient(@Valid @RequestBody PatientRequest patientRequest) throws BadRequestException {
+        return userService.registerPatient(patientRequest);
+    }
+
+
+
 }
+

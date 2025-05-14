@@ -1,6 +1,7 @@
 package com.medco.eprescription_out_of_stock.Controller.Prescription;
+
 import com.medco.eprescription_out_of_stock.Dto.Request.Prescription.PrescriptionOutOfStockRequest;
-import com.medco.eprescription_out_of_stock.Dto.Response.User.Prescription.PrescriptionOutOfStockResponse;
+import com.medco.eprescription_out_of_stock.Dto.Response.Prescription.PrescriptionOutOfStockResponse;
 import com.medco.eprescription_out_of_stock.Service.Prescription.PrescriptionOutOfStockService;
 import com.medco.eprescription_out_of_stock.Utills.PagedResponse;
 import com.medco.eprescription_out_of_stock.Utills.PaginationUtil;
@@ -13,9 +14,8 @@ import java.util.List;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/v1/e-prescription/prescription-out-of-stock")
+@RequestMapping("/api/v1/prescription-out-of-stock")
 public class PrescriptionOutOfStockController {
-
 
     private final PrescriptionOutOfStockService prescriptionOutOfStockService;
 
@@ -25,10 +25,7 @@ public class PrescriptionOutOfStockController {
     }
 
     @PostMapping
-    public ResponseEntity<PrescriptionOutOfStockRequest> createRequest(
-            @RequestBody PrescriptionOutOfStockRequest request) {
-
-
+    public ResponseEntity<?> addOutOfPrescription(@RequestBody PrescriptionOutOfStockRequest request) {
         return ResponseEntity.ok(prescriptionOutOfStockService.createRequest(request));
     }
 
@@ -36,8 +33,6 @@ public class PrescriptionOutOfStockController {
     public ResponseEntity<List<PrescriptionOutOfStockResponse>> getAllRequests() {
         return ResponseEntity.ok(prescriptionOutOfStockService.getAllRequests());
     }
-
-
 
     @GetMapping("/search-prescription")
     public ResponseEntity<PagedResponse<PrescriptionOutOfStockResponse>> getAllClaims(
@@ -47,7 +42,6 @@ public class PrescriptionOutOfStockController {
 
         Pageable pageable = PaginationUtil.paginateResource(page, limit, "id", "desc");
         return prescriptionOutOfStockService.searchPrescription(search, pageable);
-
     }
 
     @GetMapping("/{id}")
@@ -61,6 +55,4 @@ public class PrescriptionOutOfStockController {
             @RequestParam String status) {
         return ResponseEntity.ok(prescriptionOutOfStockService.updateStatus(id, status));
     }
-
-
 }

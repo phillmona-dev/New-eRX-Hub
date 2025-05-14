@@ -5,9 +5,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
 public class RoleRequest {
+
     @NotBlank
     @Size(min = 3, max = 50)
     private String roleName;
@@ -16,5 +17,7 @@ public class RoleRequest {
     @Size(max = 100)
     private String roleDescription;
 
+
     private String [] privileges;
+
 }

@@ -1,5 +1,5 @@
 package com.medco.eprescription_out_of_stock.Entitiy.User;
-
+import com.medco.eprescription_out_of_stock.shared.Audit;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -7,10 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.medco.eprescription_out_of_stock.shared.Audit;
 
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,9 +20,10 @@ import java.util.UUID;
 @Entity
 @Table(name = "privileges", uniqueConstraints = {
         @UniqueConstraint(columnNames = "privilegeName"),
-        @UniqueConstraint(columnNames = "privilege_uuid")  // Make sure this matches the column name in the DB
+        @UniqueConstraint(columnNames = "privilege_uuid")
 })
 public class Privilege extends Audit {
+
     @Serial
     private static final long serialVersionUID = 2369844719759914085L;
 
@@ -29,7 +32,7 @@ public class Privilege extends Audit {
     private Integer id;
 
     @Column(name = "privilege_uuid", unique = true, nullable = false)
-    private String privilegeUuid = UUID.randomUUID().toString();  // Ensure this matches with the database
+    private String privilegeUuid = UUID.randomUUID().toString();
 
     @Column(length = 50, nullable = false)
     private String privilegeName;
@@ -41,7 +44,7 @@ public class Privilege extends Audit {
     @NotBlank
     @Column(length = 50, nullable = false)
     private String privilegeCategory;
+
+    @OneToMany(mappedBy = "privilege", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RolePrivilege> rolePrivileges = new ArrayList<>();
 }
-
-
-

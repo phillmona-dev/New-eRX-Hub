@@ -1,14 +1,14 @@
 package com.medco.eprescription_out_of_stock.Service.User;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.AuthRequest;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.ResetPasswordRequest;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.SignUpRequest;
-import com.medco.eprescription_out_of_stock.Dto.Request.User.UploadProfileRequest;
+import com.medco.eprescription_out_of_stock.Dto.Request.User.*;
 import com.medco.eprescription_out_of_stock.Dto.Response.User.MessageResponse;
+import com.medco.eprescription_out_of_stock.Dto.Response.User.PharmacistResponse;
 import com.medco.eprescription_out_of_stock.Dto.Response.User.UserMyResponse;
 import com.medco.eprescription_out_of_stock.Dto.Response.User.UserResponse;
 import com.medco.eprescription_out_of_stock.Exception.BadRequestException;
+import com.medco.eprescription_out_of_stock.shared.enums.UserStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import com.medco.eprescription_out_of_stock.shared.enums.Status;
+
 import javax.security.auth.login.AccountNotFoundException;
 import java.io.IOException;
 import java.util.List;
@@ -31,5 +31,12 @@ public interface UserService {
     public ResponseEntity<?> checkResetCode(ResetPasswordRequest resetPasswordDetail);
     public List<UserResponse> searchUsers(String searchKey, int page, int limit);
 
-    void changeUserStatus(Long userId, Status statusEnum);
+    void changeUserStatus(Long userId, UserStatus statusEnum);
+
+    ResponseEntity<?> registerPhysician(PhysicianSignupRequest physicianSignupRequest);
+
+    ResponseEntity<PharmacistResponse> registerPharmacist(PharmacistSignUpRequest pharmacistSignUpRequest);
+
+
+    ResponseEntity<?> registerPatient(@Valid PatientRequest patientRequest);
 }
