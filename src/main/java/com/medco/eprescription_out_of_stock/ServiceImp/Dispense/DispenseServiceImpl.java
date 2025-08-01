@@ -4,12 +4,12 @@ import com.medco.eprescription_out_of_stock.Dto.Response.Dispense.DispensedDrugs
 import com.medco.eprescription_out_of_stock.Dto.Response.Dispense.PrescriptionDrugDto;
 import com.medco.eprescription_out_of_stock.Dto.Response.Dispense.PrescriptionDto;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.PrescribedDrugs;
-import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Prescriptions;
+import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Prescription;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.ReleasedDrugs;
 import com.medco.eprescription_out_of_stock.Repository.Prescription.DispensedDrugRepository;
 import com.medco.eprescription_out_of_stock.Repository.Prescription.DispensedDrugResponseRepository;
 import com.medco.eprescription_out_of_stock.Repository.Prescription.PrescribedDrugsRepository;
-import com.medco.eprescription_out_of_stock.Repository.Prescription.PrescriptionsRepository;
+import com.medco.eprescription_out_of_stock.Repository.Prescription.PrescriptionRepository;
 import com.medco.eprescription_out_of_stock.Security.Services.UserDetailsImpl;
 import com.medco.eprescription_out_of_stock.Service.Dispense.DispenseService;
 import com.medco.eprescription_out_of_stock.shared.enums.prescribedDrugsEnum;
@@ -39,7 +39,7 @@ public class DispenseServiceImpl implements DispenseService {
     PrescribedDrugsRepository prescribedDrugsRepository;
 
     @Autowired
-    PrescriptionsRepository prescriptionsRepository;
+    PrescriptionRepository prescriptionRepository;
 
     @Override
     public ResponseEntity<?> dispenseDrug(DispenseRequestDto request) {
@@ -55,7 +55,7 @@ public class DispenseServiceImpl implements DispenseService {
         );
 
 
-        Optional<Prescriptions> prescriptionOpt = prescriptionsRepository.findById(request.getPrescriptionId());
+        Optional<Prescription> prescriptionOpt = prescriptionRepository.findById(request.getPrescriptionId());
 
         if (prescriptionOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("Invalid prescription ID");
@@ -65,7 +65,7 @@ public class DispenseServiceImpl implements DispenseService {
             return ResponseEntity.badRequest().body("Prescribed drugs list is null or empty");
         }
 
-        Prescriptions prescription = prescriptionOpt.get();
+        Prescription prescription = prescriptionOpt.get();
         List<ReleasedDrugs> releasedDrugsList = new ArrayList<>();
 
         for (var prescribedDrugDto : request.getPrescribedDrugs()) {

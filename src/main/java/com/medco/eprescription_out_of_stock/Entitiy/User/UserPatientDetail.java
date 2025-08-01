@@ -1,11 +1,10 @@
 package com.medco.eprescription_out_of_stock.Entitiy.User;
 
-import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Prescriptions;
+import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Prescription;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
 import java.util.List;
 
 @Setter
@@ -26,7 +25,7 @@ public class UserPatientDetail {
     private User user;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Prescriptions> prescriptions;
+    private List<Prescription> prescriptions;
 
 
 }

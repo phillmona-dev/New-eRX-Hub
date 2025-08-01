@@ -53,6 +53,9 @@ public class Drug implements Serializable {
 
     private String drugDescription;
 
+    private String manufacturer;
+
+
     @Enumerated(EnumType.STRING)
     private DrugStatusEnum drugStatus;
 

@@ -2,6 +2,7 @@ package com.medco.eprescription_out_of_stock.Dto.Response.Prescription;
 
 
 import com.medco.eprescription_out_of_stock.Dto.Request.Prescription.MedicineList;
+import com.medco.eprescription_out_of_stock.shared.enums.Status;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +25,9 @@ public class PrescriptionOutOfStockResponse {
     private String woreda;
     private String city;
     private double weight;
+
+    private String drugName;
+    private Status status;
 
     private List<MedicineList> medicineLists;
 

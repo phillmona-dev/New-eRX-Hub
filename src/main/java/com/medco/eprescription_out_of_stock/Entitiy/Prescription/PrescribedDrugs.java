@@ -81,7 +81,7 @@ public class PrescribedDrugs implements Serializable {
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "prescription_id")
-    private Prescriptions prescriptions;
+    private Prescription prescriptions;
 
     @OneToMany(mappedBy = "prescribedDrugs")
     private List<ReturnedPrescriptions> returnedPrescriptions;

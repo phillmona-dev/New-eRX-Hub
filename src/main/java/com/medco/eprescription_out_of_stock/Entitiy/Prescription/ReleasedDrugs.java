@@ -21,13 +21,13 @@ public class ReleasedDrugs {
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "prescription_id")
-    private Prescriptions prescription;
+    private Prescription prescription;
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "prescriptiondrug_id")
     private PrescribedDrugs prescribedDrug;
+
     private Long pharmacyId;
-    private String dispensedBy;
 
 
 }

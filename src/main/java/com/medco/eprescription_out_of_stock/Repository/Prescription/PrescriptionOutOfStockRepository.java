@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Repository
 public interface PrescriptionOutOfStockRepository extends JpaRepository<PrescriptionoutOfStock, Long> {
 
@@ -23,4 +26,22 @@ public interface PrescriptionOutOfStockRepository extends JpaRepository<Prescrip
     Page<PrescriptionoutOfStock> searchPrescriptions(@Param("search") String search, Pageable pageable);
 
 
+    @Query("SELECT p FROM PrescriptionoutOfStock p WHERE " +
+            "(:identifier IS NULL OR p.prescriptionUuid = :identifier) AND " +
+            "(:phoneNumber IS NULL OR p.phoneNumber = :phoneNumber) AND " +
+            "(:patientName IS NULL OR LOWER(p.patientFullName) LIKE LOWER(CONCAT('%', :patientName, '%'))) AND " +
+            "(:idNumber IS NULL OR p.idNumber = :idNumber) AND " +
+            "(:prescriptionDateStart IS NULL OR p.prescriptionDate >= :prescriptionDateStart) AND " +
+            "(:prescriptionDateEnd IS NULL OR p.prescriptionDate <= :prescriptionDateEnd)")
+    Page<PrescriptionoutOfStock> advancedSearch(
+            @Param("identifier") String identifier,
+            @Param("phoneNumber") String phoneNumber,
+            @Param("patientName") String patientName,
+            @Param("idNumber") String idNumber,
+            @Param("prescriptionDateStart") LocalDate prescriptionDateStart,
+            @Param("prescriptionDateEnd") LocalDate prescriptionDateEnd,
+            Pageable pageable
+    );
+
+    List<PrescriptionoutOfStock> findByPatientId(Long patientId);
 }

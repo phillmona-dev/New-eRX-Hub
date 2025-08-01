@@ -8,14 +8,12 @@ import java.util.List;
 @Getter
 @Setter
 public class PrescriptionRequestDto {
-
     private String trackingNumber;
     private String pickedBy;
     private String diagnosis;
-    private String chiefCompliant;
+    private String chiefComplaint;
     private Long pharmacyId;
     private Long patientId;
     private List<DrugPrescriptionInfoDto> drugs;
-
-
+    private String location;
 }

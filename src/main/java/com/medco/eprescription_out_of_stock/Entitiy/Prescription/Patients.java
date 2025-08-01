@@ -1,14 +1,12 @@
 package com.medco.eprescription_out_of_stock.Entitiy.Prescription;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -34,5 +32,8 @@ public class Patients {
     private String woreda;
     private String region;
     private Long insuranceId;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PrescriptionoutOfStock> prescriptions;
 
 }

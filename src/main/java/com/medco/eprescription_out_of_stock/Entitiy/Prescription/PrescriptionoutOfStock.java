@@ -3,6 +3,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,10 +34,27 @@ public class PrescriptionoutOfStock {
     private String city;
     private double weight;
 
+    private String cardNumber;
+    private String sponsorName;
+    private String woredaId;
+    private String paymentTypeId;
+    private String patientTypeId;
+    private String prescriberName;
+    private String prescriberQualification;
+    private String prescriberRegistrationNumber;
+    private LocalDateTime prescriptionDate;
+    private String prescriptionNumber;
+    private String institutionId;
+    private String diagnosis;
+
     @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Medication> medications;
 
     private double prescriptionTotalCost;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_id")
+    private Patients patient;
 
 
 

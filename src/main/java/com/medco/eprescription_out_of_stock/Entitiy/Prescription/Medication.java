@@ -18,6 +18,13 @@ public class Medication {
     private int quantity;
     private String description;
     private double totalPrice;
+
+    private int numberOfDuration;
+    private String administrationId;
+    private String frequencyTypeId;
+    private String itemUnitId;
+    private int orderNumber;
+
     @ManyToOne
     @JoinColumn(name = "prescription_id")
     private PrescriptionoutOfStock prescription;

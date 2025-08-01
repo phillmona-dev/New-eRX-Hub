@@ -31,7 +31,6 @@ public class DispenseController {
 
         return  dispenseService.getAllDispensedDrugs(search,pageable);
 
-
     }
 
     @GetMapping("/{id}")

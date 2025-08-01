@@ -62,8 +62,7 @@ public class WebSecurityConfig {
                                 "/swagger-ui/**",
                                 "/api/v1/e-prescription/auth/users/sign-in",
                                 "/api/v1/e-prescription/auth/users/sign-up",
-                                "/api/v1/e-prescription/prescription-out-of-stock",
-                                "/api/v1/e-prescription/prescription-out-of-stock/**",
+                                "/api/v1/prescription-out-of-stock/incoming",
                                 "/api/v1/e-prescription/users/privilege",
                                 "/api/v1/e-prescription/users/role"
 

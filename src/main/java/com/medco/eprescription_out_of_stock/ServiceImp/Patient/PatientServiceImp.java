@@ -4,10 +4,9 @@ import com.medco.eprescription_out_of_stock.Dto.Response.Patient.PatientRequestD
 import com.medco.eprescription_out_of_stock.Dto.Response.Patient.PatientResponse;
 import com.medco.eprescription_out_of_stock.Dto.Response.Patient.PatientResponseDto;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Patients;
-import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Prescriptions;
 import com.medco.eprescription_out_of_stock.Exception.BadRequestException;
 import com.medco.eprescription_out_of_stock.Repository.Prescription.PatientRepository;
-import com.medco.eprescription_out_of_stock.Repository.Prescription.PrescriptionsRepository;
+import com.medco.eprescription_out_of_stock.Repository.Prescription.PrescriptionRepository;
 import com.medco.eprescription_out_of_stock.Service.Patient.PatientService;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -38,7 +37,7 @@ public class PatientServiceImp implements PatientService {
     PatientRepository patientRepository;
 
     @Autowired
-    PrescriptionsRepository prescriptionsRepository;
+    PrescriptionRepository prescriptionRepository;
 
     @Override
     public ResponseEntity<PatientResponse> createPatient(PatientRequestDto req) {

@@ -19,7 +19,6 @@ public class DrugController {
         this.drugService = drugService;
     }
 
-    // Endpoint to add a drug
     @PostMapping
     public ResponseEntity<String> addDrug(@RequestBody DrugDtoRequest drugDtoRequest) {
         try {
@@ -30,7 +29,6 @@ public class DrugController {
         }
     }
 
-    // Endpoint to get a drug by its ID
     @GetMapping("/{drugId}")
     public ResponseEntity<Drug> getDrugById(@PathVariable String drugId) {
         Drug drug = drugService.getDrugById(drugId);

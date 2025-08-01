@@ -30,8 +30,6 @@ public class Pharmacy {
 
     private Integer woredaId;
 
-    private String kebelle;
-
     private String streetNumber;
 
     @Column(nullable = false)
@@ -73,7 +71,5 @@ public class Pharmacy {
 
     private String openingAt;
     private String closingAt;
-
-
 
 }

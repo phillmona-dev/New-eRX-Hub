@@ -19,21 +19,17 @@ spring:
     jwtExpirationMs:  21600000
     refreshExpirationMs: 18000000
 
-
 file:
   dir-attachments:  /home/yemane/Documents/Medco/lemobile/attachments
-
 
 afromessage:
   api:
     url: "https://api.afromessage.com/api/send"
-    token: eyJhbGciOiJIUzI1NiJ9.eyJpZGVudGlmaWVyIjoiYkpUZ1VZVzJoaTZnaFo5QTJDSjBaU3pzeWhLZ2ZtVWsiLCJleHAiOjE4OTM0NzkxNjUsImlhdCI6MTczNTcxMjc2NSwianRpIjoiMmVlMGNmOWUtOGFlMC00NDQ0LWFjY2UtODdhNjU0MjhiNmQxIn0.D5_eQNtA4HNaNuVo1O6pydwaZ-sn3fpWZa-g4rjl1IU
+    token: eyJhbGciOiJIUzI1NiJ9.eyJpZGVudGlmaWVyIjoiOWVNWDc5YTVTNnZiTkdGVWlPUzNOZU1XYkVQYXVyS08iLCJleHAiOjE5MTEwMjIxNDIsImlhdCI6MTc1MzI1NTc0MiwianRpIjoiNjAwZDBlOTItZDAzNy00YmJlLWJiODItNDZiNjkwOTVjZDM0In0.gu6b0nl3G1NPWIp9E27LxYYIUENMOYzZvn19U82EnBg
     identifierId: e80ad9d8-adf3-463f-80f4-7c4b39f7f164
 kenema:
   api:
-    url: "http://localhost:8800/api/v1/reports"
-
-
+    url: http://192.168.0.189:8990
 
 servlet:
   multipart:
@@ -52,4 +48,7 @@ springdoc:
     enabled: true
 
 server:
-  port: 8400
+  port: 8300
+
+api:
+  key: hc_7f9a3b2e4d5c1f8e6a0d9b7c5e3f1a2d
