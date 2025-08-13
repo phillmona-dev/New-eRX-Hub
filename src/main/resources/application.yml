@@ -29,7 +29,7 @@ afromessage:
     identifierId: e80ad9d8-adf3-463f-80f4-7c4b39f7f164
 kenema:
   api:
-    url: https://cfb.kenemapharmacy.com
+    url: http://192.168.0.189:8990
 
 servlet:
   multipart:

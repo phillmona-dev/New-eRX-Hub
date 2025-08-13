@@ -27,4 +27,6 @@ public interface PrescriptionOutOfStockService {
     ResponseEntity<PagedResponse<PrescriptionOutOfStockResponse>> advancedSearch(String identifier, String phoneNumber, String patientName, String idNumber, LocalDate prescriptionDateStart, LocalDate prescriptionDateEnd, Pageable pageable);
 
     List<PrescriptionOutOfStockResponse> getPatientPrescriptions(Long patientId);
+
+    void testLocationGrouping();
 }

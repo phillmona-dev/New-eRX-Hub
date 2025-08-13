@@ -7,13 +7,16 @@ import com.medco.eprescription_out_of_stock.Dto.OptMessage.OtpResponse;
 import com.medco.eprescription_out_of_stock.Dto.Request.Prescription.MedicineList;
 import com.medco.eprescription_out_of_stock.Dto.Request.Prescription.PrescriptionOutOfStockRequest;
 import com.medco.eprescription_out_of_stock.Dto.Response.Prescription.PrescriptionOutOfStockResponse;
+import com.medco.eprescription_out_of_stock.Entitiy.ExternalSystemAuditLog;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Medication;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Patients;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.PrescriptionoutOfStock;
 import com.medco.eprescription_out_of_stock.Repository.Prescription.PrescriptionOutOfStockRepository;
 import com.medco.eprescription_out_of_stock.Repository.patient.PatientsRepository;
+import com.medco.eprescription_out_of_stock.Service.ExternalSystemAuditService;
 import com.medco.eprescription_out_of_stock.Service.Prescription.PrescriptionOutOfStockService;
 import com.medco.eprescription_out_of_stock.Utills.PagedResponse;
+import com.medco.eprescription_out_of_stock.shared.enums.ExternalSystemType;
 import com.medco.eprescription_out_of_stock.shared.enums.Status;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -32,6 +35,7 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -65,12 +69,15 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final PatientsRepository patientsRepository;
-
     private final PrescriptionOutOfStockRepository prescriptionOutOfStockRepository;
+    private final ExternalSystemAuditService auditService;
 
-    public PrescriptionOutOfStockServiceImpl(PatientsRepository patientsRepository, PrescriptionOutOfStockRepository prescriptionOutOfStockRepository) {
+    public PrescriptionOutOfStockServiceImpl(PatientsRepository patientsRepository,
+                                           PrescriptionOutOfStockRepository prescriptionOutOfStockRepository,
+                                           ExternalSystemAuditService auditService) {
         this.patientsRepository = patientsRepository;
         this.prescriptionOutOfStockRepository = prescriptionOutOfStockRepository;
+        this.auditService = auditService;
     }
 
     @Override
@@ -276,6 +283,7 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
     @Override
     @Transactional
     public ResponseEntity<?> processIncomingPrescription(IncomingPrescriptionDto incomingPrescription) {
+
         log.info("Starting to process incoming prescription");
 
         log.info("Searching for patient with phone number: {}", incomingPrescription.getPatient().getPhoneNumber());
@@ -362,22 +370,59 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
         messageBuilder.append("Medicine availability:\n");
 
         log.info("Checking medicine availability");
+
+        // Collect all medicine availability data first - grouped by location
+        Map<String, Map<String, String>> locationMedicineMap = new LinkedHashMap<>();
         boolean allMedicinesUnavailable = true;
+
         for (Medication medication : medications) {
             log.info("Searching stock for medication: {}", medication.getName());
             List<Map<String, Object>> availabilityInfo = searchMedicineFromStock(medication.getName());
+
             if (!availabilityInfo.isEmpty()) {
                 allMedicinesUnavailable = false;
-                messageBuilder.append(medication.getName()).append(":\n");
-                for (int i = 0; i < Math.min(3, availabilityInfo.size()); i++) {
-                    Map<String, Object> info = availabilityInfo.get(i);
-                    messageBuilder.append(" - ").append(info.get("branchName"))
-                            .append(" (Available: ").append(info.get("availableAmount")).append(")\n");
+
+                for (Map<String, Object> info : availabilityInfo) {
+                    String branchName = (String) info.get("branchName");
+                    String availability = (String) info.get("availableAmount");
+
+                    if (branchName != null && availability != null && !"Out of Stock".equals(availability)) {
+                        locationMedicineMap.computeIfAbsent(branchName, k -> new LinkedHashMap<>())
+                                .put(medication.getName(), availability);
+                    }
                 }
                 log.info("Found availability information for {}", medication.getName());
             } else {
-                messageBuilder.append(medication.getName()).append(": Not available or unable to check availability\n");
                 log.info("No availability information found for {}", medication.getName());
+            }
+        }
+
+        // Build location-based message
+        if (!allMedicinesUnavailable && !locationMedicineMap.isEmpty()) {
+            // Sort locations by number of available medicines (descending) and limit to 3
+            List<Map.Entry<String, Map<String, String>>> sortedLocations = locationMedicineMap.entrySet().stream()
+                    .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
+                    .limit(3)
+                    .collect(Collectors.toList());
+
+            sortedLocations.forEach(locationEntry -> {
+                String location = locationEntry.getKey();
+                Map<String, String> medicines = locationEntry.getValue();
+
+                messageBuilder.append(location).append(":\n");
+                medicines.forEach((medicineName, availability) ->
+                        messageBuilder.append("  ").append(medicineName)
+                                .append(": ").append(availability).append("\n"));
+                messageBuilder.append("\n");
+            });
+
+            // Add recommendation using the first entry from sorted list
+            if (!sortedLocations.isEmpty()) {
+                String topLocation = sortedLocations.get(0).getKey();
+                int medicineCount = sortedLocations.get(0).getValue().size();
+                messageBuilder.append("Recommendation: Visit ").append(topLocation)
+                        .append(" where ").append(medicineCount)
+                        .append(" of your medications are available.\n");
             }
         }
 
@@ -399,6 +444,10 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
     }
 
     private List<Map<String, Object>> searchMedicineFromStock(String drugName) {
+        return searchMedicineFromStock(drugName, null, null);
+    }
+
+    private List<Map<String, Object>> searchMedicineFromStock(String drugName, String prescriptionUuid, String patientPhone) {
         log.info("Searching for medicine in stock: {}", drugName);
 
         String url = UriComponentsBuilder.fromHttpUrl(kenemaUrl + "/api/kenema/v1/stock/inventory/cross-branch-availability")
@@ -411,6 +460,17 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
 
         log.debug("Constructed URL for stock search: {}", url);
 
+        ExternalSystemAuditLog auditLog = auditService.createAuditLog(
+                ExternalSystemType.KENEMA_STOCK_API,
+                "SEARCH_MEDICINE_STOCK",
+                url,
+                String.format("{\"drugName\":\"%s\"}", drugName),
+                prescriptionUuid,
+                patientPhone,
+                drugName,
+                null
+        );
+
         Request request = new Request.Builder()
                 .url(url)
                 .build();
@@ -418,13 +478,18 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
         try (Response response = httpClient.newCall(request).execute()) {
             log.debug("Received response with status code: {}", response.code());
 
+            String responseBody = response.body() != null ? response.body().string() : "";
+
             if (!response.isSuccessful()) {
                 log.error("Failed to search medicines. Response code: {}", response.code());
+                auditService.markAsFailed(auditLog.getId(),
+                        String.format("HTTP %d: Failed to search medicines", response.code()),
+                        response.code());
                 return Collections.emptyList();
             }
 
-            String responseBody = response.body().string();
             log.debug("Received response body: {}", responseBody);
+            auditService.markAsSuccess(auditLog.getId(), responseBody, response.code());
 
             JsonNode rootNode = objectMapper.readTree(responseBody);
             JsonNode contentNode = rootNode.get("content");
@@ -432,21 +497,76 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
             if (contentNode != null && contentNode.isArray()) {
                 log.info("Successfully parsed medicine stock information for: {}", drugName);
                 List<Map<String, Object>> result = objectMapper.convertValue(contentNode, new TypeReference<List<Map<String, Object>>>() {});
-                log.debug("Parsed {} stock entries for {}", result.size(), drugName);
-                return result;
+
+                List<Map<String, Object>> enhancedResult = result.stream()
+                        .map(this::enhanceMedicineAvailabilityInfo)
+                        .collect(Collectors.toList());
+
+                log.debug("Parsed {} stock entries for {}", enhancedResult.size(), drugName);
+                return enhancedResult;
             } else {
                 log.warn("No content found in the response for drug: {}", drugName);
             }
         } catch (SocketTimeoutException e) {
             log.error("Connection timed out while searching for medicine stock: {}", drugName, e);
+            auditService.markAsTimeout(auditLog.getId());
         } catch (IOException e) {
             log.error("Error occurred while searching for medicine stock: {}", drugName, e);
+            auditService.markAsFailed(auditLog.getId(), "IOException: " + e.getMessage(), null);
         } catch (Exception e) {
             log.error("Unexpected error occurred while processing medicine stock search for: {}", drugName, e);
+            auditService.markAsFailed(auditLog.getId(), "Unexpected error: " + e.getMessage(), null);
         }
 
         log.warn("Returning empty list as no stock information found for: {}", drugName);
         return Collections.emptyList();
+    }
+
+    private Map<String, Object> enhanceMedicineAvailabilityInfo(Map<String, Object> originalInfo) {
+        Map<String, Object> enhanced = new java.util.HashMap<>(originalInfo);
+
+        Object availableAmountObj = originalInfo.get("availableAmount");
+        if (availableAmountObj != null) {
+            try {
+                int availableAmount = Integer.parseInt(availableAmountObj.toString());
+                String availabilityStatus = getAvailabilityStatus(availableAmount);
+                enhanced.put("availableAmount", availabilityStatus);
+                enhanced.put("stockLevel", getStockLevel(availableAmount));
+            } catch (NumberFormatException e) {
+                log.warn("Could not parse available amount: {}", availableAmountObj);
+                enhanced.put("availableAmount", "Unknown");
+                enhanced.put("stockLevel", "UNKNOWN");
+            }
+        } else {
+            enhanced.put("availableAmount", "Not Available");
+            enhanced.put("stockLevel", "OUT_OF_STOCK");
+        }
+
+        return enhanced;
+    }
+
+    private String getAvailabilityStatus(int quantity) {
+        if (quantity == 0) {
+            return "Out of Stock";
+        } else if (quantity <= 5) {
+            return "Limited Stock";
+        } else if (quantity <= 10) {
+            return "Low Stock";
+        } else {
+            return "Available (10+)";
+        }
+    }
+
+    private String getStockLevel(int quantity) {
+        if (quantity == 0) {
+            return "OUT_OF_STOCK";
+        } else if (quantity <= 5) {
+            return "LIMITED";
+        } else if (quantity <= 10) {
+            return "LOW";
+        } else {
+            return "ADEQUATE";
+        }
     }
 
     private boolean sendMessageToPatient(String phoneNumber, String message) {
@@ -502,6 +622,11 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
         return prescriptions.stream()
                 .map(this::mapToPrescriptionOutOfStockResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void testLocationGrouping() {
+
     }
 
     private PrescriptionOutOfStockResponse mapToPrescriptionOutOfStockResponse(PrescriptionoutOfStock prescription) {

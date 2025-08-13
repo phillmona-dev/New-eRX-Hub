@@ -37,6 +37,16 @@ public class PrescriptionOutOfStockController {
         return prescriptionOutOfStockService.processIncomingPrescription(incomingPrescription);
     }
 
+    @GetMapping("/test-location-grouping")
+    public ResponseEntity<String> testLocationGrouping() {
+        try {
+            prescriptionOutOfStockService.testLocationGrouping();
+            return ResponseEntity.ok("Test completed. Check logs for results.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Test failed: " + e.getMessage());
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> addOutOfPrescription(@RequestBody PrescriptionOutOfStockRequest request) {
         return ResponseEntity.ok(prescriptionOutOfStockService.createRequest(request));
