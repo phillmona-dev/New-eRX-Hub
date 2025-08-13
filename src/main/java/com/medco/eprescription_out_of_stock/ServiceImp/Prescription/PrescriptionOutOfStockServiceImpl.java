@@ -508,13 +508,11 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
         PrescriptionOutOfStockResponse response = new PrescriptionOutOfStockResponse();
         BeanUtils.copyProperties(prescription, response);
 
-        // Assuming you want to show the first medication's name as the drug name
         if (!prescription.getMedications().isEmpty()) {
             response.setDrugName(prescription.getMedications().get(0).getName());
         }
 
-        // Set the status (you might need to adjust this based on your actual data model)
-        response.setStatus(Status.PENDING); // Or however you determine the status
+        response.setStatus(Status.PENDING);
 
         List<MedicineList> medicines = prescription.getMedications().stream()
                 .map(this::mapToMedicineList)

@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/erx
-    username: erx
-    password: erxpassword
+    username: postgres
+    password: postgres
 
   jpa:
     hibernate:
@@ -29,7 +29,7 @@ afromessage:
     identifierId: e80ad9d8-adf3-463f-80f4-7c4b39f7f164
 kenema:
   api:
-    url: http://192.168.0.189:8990
+    url: https://cfb.kenemapharmacy.com
 
 servlet:
   multipart:
