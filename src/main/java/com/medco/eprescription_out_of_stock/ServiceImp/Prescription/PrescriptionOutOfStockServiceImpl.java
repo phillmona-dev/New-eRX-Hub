@@ -195,6 +195,7 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
             response.setAge(prescription.getAge());
             response.setPhoneNumber(prescription.getPhoneNumber());
             response.setHouseNumber(prescription.getHouseNumber());
+            response.setPrescriptionDate(prescription.getPrescriptionDate());
             response.setIdNumber(prescription.getIdNumber());
             response.setInsuranceNumber(prescription.getInsuranceNumber());
             response.setAddress(prescription.getAddress());

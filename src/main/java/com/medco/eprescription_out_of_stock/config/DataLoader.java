@@ -81,7 +81,6 @@ public class DataLoader implements CommandLineRunner {
             System.out.println("Created ROLE_SUPER_ADMIN");
         }
 
-        // Privileges required for super admin
         List<String> superAdminPrivilegeNames = Arrays.asList(
                 "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
                 "CREATE_ROLE", "READ_ROLE", "UPDATE_ROLE", "DELETE_ROLE",
@@ -91,7 +90,6 @@ public class DataLoader implements CommandLineRunner {
         for (String privilegeName : superAdminPrivilegeNames) {
             Privilege privilege = privilegeRepository.findByPrivilegeName(privilegeName);
             if (privilege != null) {
-                // Only create RolePrivilege if it doesn’t exist
                 boolean exists = rolePrivilegeRepository.existsByRoleAndPrivilege(superAdminRole, privilege);
                 if (!exists) {
                     RolePrivilege rolePrivilege = new RolePrivilege();
@@ -134,7 +132,6 @@ public class DataLoader implements CommandLineRunner {
             userRepository.save(superAdmin);
             System.out.println("Super Admin user created successfully.");
         } else {
-            // Ensure role info is up to date
             existingSuperAdmin.setRoleName(superAdminRole.getRoleName());
             existingSuperAdmin.setRoleUuid(superAdminRole.getRoleUuid());
 
