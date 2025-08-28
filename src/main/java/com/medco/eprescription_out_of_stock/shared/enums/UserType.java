@@ -1,5 +1,5 @@
 package com.medco.eprescription_out_of_stock.shared.enums;
 
 public enum UserType {
-    PHARMACIST, PHYSICIAN, PATIENT, HEALTHCENTER, ADMIN
+    PHARMACIST, PHYSICIAN, PATIENT, HEALTHCENTER, ADMIN, SUPER_ADMIN
 }

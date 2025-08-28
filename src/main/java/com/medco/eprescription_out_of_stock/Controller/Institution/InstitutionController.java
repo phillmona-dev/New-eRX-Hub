@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/erx/prescription/institution")
+@RequestMapping("/api/v1/erx/prescription/institution")
 public class InstitutionController {
 
     private final InstitutionService institutionService;
@@ -27,7 +27,6 @@ public class InstitutionController {
         this.institutionService = institutionService;
     }
 
-    // Create a new institution
     @PostMapping
     public ResponseEntity<?> createInstitution(@RequestBody InstitutionRequest institution) {
         ResponseEntity<?> createdInstitution = institutionService.createInstitution(institution);
@@ -66,9 +65,7 @@ public class InstitutionController {
         institutionService.deleteInstitution(id);
         return ResponseEntity.noContent().build();
 
-
     }
-
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> importInsuredPersons(
@@ -77,7 +74,5 @@ public class InstitutionController {
     ) throws IOException {
         return institutionService.importInstitution(file);
     }
-
-
 
 }

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/erx/prescription/branch")
+@RequestMapping("/api/v1/erx/prescription/branch")
 public class BranchController {
 
     private final BranchService branchService;
@@ -34,8 +34,6 @@ public class BranchController {
         List<Branch> branches = branchService.getAllBranches();
         return ResponseEntity.ok(branches);
     }
-
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBranch(@PathVariable Long id) {

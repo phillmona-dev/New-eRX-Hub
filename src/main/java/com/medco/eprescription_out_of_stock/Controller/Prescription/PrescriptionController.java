@@ -64,7 +64,6 @@ public class PrescriptionController {
 
     }
 
-//
     @GetMapping("/All-prescriptions")
     public ResponseEntity<?> getPrescription(@RequestParam(value = "Search", required = false) String search,
                                                           @RequestParam(value = "page", defaultValue = "1") int page,
@@ -83,13 +82,10 @@ public class PrescriptionController {
         return  prescriptionService.searchPrescriptionByPatientId(patientId,pageable);
     }
 
-    //new
-
     @PostMapping("/log")
     public ResponseEntity<Prescription> logPrescription(@RequestBody PrescriptionDto prescriptionDto) {
         Prescription loggedPrescription = prescriptionService.logPrescription(prescriptionDto);
         return new ResponseEntity<>(loggedPrescription, HttpStatus.CREATED);
     }
-
 
 }

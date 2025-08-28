@@ -18,7 +18,7 @@ import javax.security.auth.login.AccountNotFoundException;
 import java.util.List;
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/v1/e-prescription/auth/users")
+@RequestMapping("/api/v1/erx/e-prescription/auth/users")
 public class AuthController {
 
     AuthenticationManager authenticationManager;

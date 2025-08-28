@@ -9,7 +9,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PagedResponse<T> {
+    private List<T> content;
+    private int page;
+    private int perPage;
+    private long totalElements;
     private int totalPages;
-//    private long totalElements;
-    private List<T> response;
+    private boolean hasNext;
+    private boolean hasPrevious;
 }

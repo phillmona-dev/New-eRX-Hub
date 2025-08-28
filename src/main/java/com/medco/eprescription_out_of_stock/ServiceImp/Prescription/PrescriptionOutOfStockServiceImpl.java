@@ -11,6 +11,7 @@ import com.medco.eprescription_out_of_stock.Entitiy.ExternalSystemAuditLog;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Medication;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Patients;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.PrescriptionoutOfStock;
+import com.medco.eprescription_out_of_stock.Exception.CustomApplicationException;
 import com.medco.eprescription_out_of_stock.Repository.Prescription.PrescriptionOutOfStockRepository;
 import com.medco.eprescription_out_of_stock.Repository.patient.PatientsRepository;
 import com.medco.eprescription_out_of_stock.Service.ExternalSystemAuditService;
@@ -23,6 +24,7 @@ import okhttp3.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,11 +35,10 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -230,54 +231,97 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
     }
 
     @Override
-    public ResponseEntity<PagedResponse<PrescriptionOutOfStockResponse>> searchPrescription(String search, Pageable pageable) {
+    public ResponseEntity<PagedResponse<PrescriptionOutOfStockResponse>> searchPrescription(
+            String search,
+            Pageable pageable) {
 
-        Page<PrescriptionoutOfStock> prescriptionPage = prescriptionOutOfStockRepository
-                .searchPrescriptions(
-                        search, pageable
-                );
+        int page = pageable.getPageNumber() < 0 ? 0 : pageable.getPageNumber();
+        int size = pageable.getPageSize() <= 0 ? 25 :
+                (pageable.getPageSize() > 100 ? 100 : pageable.getPageSize());
 
-        System.out.println("prescription after search" + prescriptionPage.getTotalPages());
+        Pageable validatedPageable = PageRequest.of(page, size, pageable.getSort());
 
-        List<PrescriptionOutOfStockResponse> responseList = prescriptionPage.getContent().stream().map(prescription -> {
-            PrescriptionOutOfStockResponse response = new PrescriptionOutOfStockResponse();
-            response.setPatientFullName(prescription.getPatientFullName());
-            response.setGender(prescription.getGender());
-            response.setAge(prescription.getAge());
-            response.setPhoneNumber(prescription.getPhoneNumber());
-            response.setHouseNumber(prescription.getHouseNumber());
-            response.setIdNumber(prescription.getIdNumber());
-            response.setInsuranceNumber(prescription.getInsuranceNumber());
-            response.setAddress(prescription.getAddress());
-            response.setRegion(prescription.getRegion());
-            response.setKebele(prescription.getKebele());
-            response.setWoreda(prescription.getWoreda());
-            response.setCity(prescription.getCity());
-            response.setWeight(prescription.getWeight());
+        try {
+            Page<PrescriptionoutOfStock> prescriptionPage = prescriptionOutOfStockRepository
+                    .searchPrescriptions(search, validatedPageable);
 
-            List<MedicineList> medicines = prescription.getMedications().stream().map(med -> {
-                MedicineList medDto = new MedicineList();
-                medDto.setName(med.getName());
-                medDto.setUnit(med.getUnit());
-                medDto.setQuantity(med.getQuantity());
-                medDto.setDescription(med.getDescription());
-                medDto.setTotalPrice(med.getTotalPrice());
-                return medDto;
-            }).toList();
+            List<PrescriptionOutOfStockResponse> responseList = prescriptionPage
+                    .getContent()
+                    .stream()
+                    .map(this::mapToResponse)
+                    .collect(Collectors.toList());
 
-            response.setMedicineLists(medicines);
-            return response;
-        }).toList();
+            PagedResponse<PrescriptionOutOfStockResponse> response = new PagedResponse<>(
+                    responseList,
+                    prescriptionPage.getNumber() + 1,
+                    prescriptionPage.getSize(),
+                    prescriptionPage.getTotalElements(),
+                    prescriptionPage.getTotalPages(),
+                    prescriptionPage.hasNext(),
+                    prescriptionPage.hasPrevious()
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Failed to search prescriptions: {}", e.getMessage(), e);
+            throw new CustomApplicationException("Failed to search prescriptions",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
-        PagedResponse<PrescriptionOutOfStockResponse> response = new PagedResponse<>(
-                prescriptionPage.getTotalPages(),
-//                prescriptionPage.getTotalElements(),
-                responseList
-        );
+    private PrescriptionOutOfStockResponse mapToResponse(PrescriptionoutOfStock prescription) {
+        PrescriptionOutOfStockResponse response = new PrescriptionOutOfStockResponse();
 
-        return ResponseEntity.ok(response);
+        response.setPatientFullName(prescription.getPatientFullName());
+        response.setGender(prescription.getGender());
+        response.setAge(prescription.getAge());
+        response.setPhoneNumber(prescription.getPhoneNumber());
+        response.setHouseNumber(prescription.getHouseNumber());
+        response.setIdNumber(prescription.getIdNumber());
+        response.setInsuranceNumber(prescription.getInsuranceNumber());
+        response.setAddress(prescription.getAddress());
+        response.setRegion(prescription.getRegion());
+        response.setKebele(prescription.getKebele());
+        response.setWoreda(prescription.getWoreda());
+        response.setCity(prescription.getCity());
+        response.setWeight(prescription.getWeight());
+        response.setPrescriptionDate(prescription.getPrescriptionDate());
+        response.setPrescriptionNumber(prescription.getPrescriptionNumber());
+        response.setPrescriptionTotalCost(prescription.getPrescriptionTotalCost());
 
+        // Map patient if exists
+//        if (prescription.getPatient() != null) {
+//            response.setPatientId(prescription.getPatient().getId());
+//            response.setPatientUuid(prescription.getPatient().getPatientUuid());
+//        }
+
+        // Safely map medications
+        List<MedicineList> medicines = Optional.ofNullable(prescription.getMedications())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(this::mapToMedicineDto)
+                .collect(Collectors.toList());
+
+        response.setMedicineLists(medicines);
+
+        return response;
+    }
+
+    private MedicineList mapToMedicineDto(Medication medication) {
+        MedicineList dto = new MedicineList();
+        dto.setName(medication.getName());
+        dto.setUnit(medication.getUnit());
+        dto.setQuantity(medication.getQuantity());
+        dto.setDescription(medication.getDescription());
+        dto.setTotalPrice(medication.getTotalPrice());
+        dto.setNumberOfDuration(medication.getNumberOfDuration());
+        dto.setAdministrationId(medication.getAdministrationId());
+        dto.setFrequencyTypeId(medication.getFrequencyTypeId());
+        dto.setItemUnitId(medication.getItemUnitId());
+        dto.setOrderNumber(medication.getOrderNumber());
+        return dto;
     }
 
     @Override
@@ -300,6 +344,7 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
         patient.setKebelle(incomingPrescription.getPatient().getKebele());
         patient.setEmployerName(incomingPrescription.getPatient().getSponsorName());
         patient.setWoreda(incomingPrescription.getPatient().getWoredaId().toString());
+        patient.setCbhiId(incomingPrescription.getPatient().getCbhiId());
 
         log.info("Saving updated patient information");
         Patients savedPatient = patientsRepository.save(patient);
@@ -330,6 +375,7 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
 
         BeanUtils.copyProperties(incomingPrescription, prescription, "id", "patient", "medications", "diagnosis");
         prescription.setInstitutionId(incomingPrescription.getInstitutionId().toString());
+        prescription.setCbhiId(incomingPrescription.getPatient().getCbhiId());
 
         log.info("Processing medications");
         List<Medication> medications = incomingPrescription.getPrescriptionDetails().stream()
@@ -597,10 +643,20 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
             String idNumber,
             LocalDate prescriptionDateStart,
             LocalDate prescriptionDateEnd,
-            Pageable pageable
+            int page,
+            int limit
     ) {
+        int pageIndex = page > 0 ? page - 1 : 0;
+
+        System.out.println("here we areeeeeeeeeeeeeeeeeeeeee");
+
+        LocalDateTime start = prescriptionDateStart != null ? prescriptionDateStart.atStartOfDay() : null;
+        LocalDateTime end = prescriptionDateEnd != null ? prescriptionDateEnd.atTime(LocalTime.MAX) : null;
+
         Page<PrescriptionoutOfStock> prescriptionPage = prescriptionOutOfStockRepository.advancedSearch(
-                identifier, phoneNumber, patientName, idNumber, prescriptionDateStart, prescriptionDateEnd, pageable
+                identifier, phoneNumber, patientName, idNumber,
+                start, end,
+                PageRequest.of(pageIndex, limit)
         );
 
         List<PrescriptionOutOfStockResponse> responseList = prescriptionPage.getContent().stream()
@@ -608,12 +664,16 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
                 .collect(Collectors.toList());
 
         PagedResponse<PrescriptionOutOfStockResponse> response = new PagedResponse<>(
+                responseList,
+                page,
+                limit,
+                prescriptionPage.getTotalElements(),
                 prescriptionPage.getTotalPages(),
-                responseList
+                prescriptionPage.hasNext(),
+                page > 1
         );
 
         return ResponseEntity.ok(response);
-
     }
 
     @Override
@@ -660,7 +720,6 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
         } else if ("Months".equalsIgnoreCase(ageType)) {
             return now.minusMonths(age).toString();
         } else {
-            // Default to days if ageType is not recognized
             return now.minusDays(age).toString();
         }
     }

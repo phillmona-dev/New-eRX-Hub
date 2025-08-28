@@ -13,4 +13,10 @@ public class MedicineList {
     private int quantity;
     private String description;
     private double totalPrice;
+
+    private int numberOfDuration;
+    private String administrationId;
+    private String frequencyTypeId;
+    private String itemUnitId;
+    private int orderNumber;
 }

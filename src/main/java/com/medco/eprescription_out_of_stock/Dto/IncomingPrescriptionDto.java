@@ -37,6 +37,7 @@ public class IncomingPrescriptionDto {
         private String middleName;
         private String lastName;
         private String phoneNumber;
+        private String cbhiId;
         private int age;
         private String ageType;
         private double weight;
@@ -55,7 +56,7 @@ public class IncomingPrescriptionDto {
     @Getter
     @Setter
     public static class PrescriptionDetail {
-        private String medicationName;// added
+        private String medicationName;
         private int numberOfDuration;
         private String administrationId;
         private String frequencyTypeId;

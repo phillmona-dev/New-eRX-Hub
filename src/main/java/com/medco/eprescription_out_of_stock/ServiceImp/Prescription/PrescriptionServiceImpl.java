@@ -332,12 +332,10 @@ public class PrescriptionServiceImpl implements PrescriptionService {
                 .collect(Collectors.toList());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseList);
+
     }
 
-
-
     private ResponseEntity<?>  getPrescriptionByPharmacyIdWithSearch(long pharmacyId,String searchFirstName,String searchPhoneNumber, Pageable pageable) {
-
 
         Page<Prescription> prescriptionWithPage = prescriptionRepository.searchByPatientNameOrPhone(searchPhoneNumber, pageable);
 
@@ -357,8 +355,6 @@ public class PrescriptionServiceImpl implements PrescriptionService {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseList);
 
     }
-
-    //new
 
     @Override
     public Prescription logPrescription(PrescriptionDto prescriptionDto) {

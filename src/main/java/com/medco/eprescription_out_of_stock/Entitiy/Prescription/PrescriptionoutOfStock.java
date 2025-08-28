@@ -19,8 +19,8 @@ public class PrescriptionoutOfStock {
     @Column(name = "prescription_uuid", unique = true, nullable = false)
     private String prescriptionUuid = UUID.randomUUID().toString();
 
-// patient detail
     private String patientFullName;
+    private String cbhiId;
     private String gender;
     private Integer age;
     private String phoneNumber;

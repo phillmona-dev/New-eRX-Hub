@@ -45,6 +45,8 @@ public class Privilege extends Audit {
     @Column(length = 50, nullable = false)
     private String privilegeCategory;
 
+    private String privilegeType;
+
     @OneToMany(mappedBy = "privilege", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RolePrivilege> rolePrivileges = new ArrayList<>();
 }

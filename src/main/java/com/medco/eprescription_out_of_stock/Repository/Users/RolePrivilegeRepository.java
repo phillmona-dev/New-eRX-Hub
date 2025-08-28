@@ -1,5 +1,6 @@
 package com.medco.eprescription_out_of_stock.Repository.Users;
 
+import com.medco.eprescription_out_of_stock.Entitiy.User.Privilege;
 import com.medco.eprescription_out_of_stock.Entitiy.User.Role;
 import com.medco.eprescription_out_of_stock.Entitiy.User.RolePrivilege;
 import jakarta.transaction.Transactional;
@@ -17,4 +18,6 @@ public interface RolePrivilegeRepository extends JpaRepository<RolePrivilege, In
     @Modifying
     @Query("DELETE FROM RolePrivilege rp WHERE rp.role = :role")
     void deleteByRole(@Param("role") Role role);
+
+    boolean existsByRoleAndPrivilege(Role superAdminRole, Privilege privilege);
 }

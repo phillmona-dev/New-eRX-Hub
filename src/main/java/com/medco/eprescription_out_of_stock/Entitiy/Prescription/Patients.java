@@ -22,6 +22,7 @@ public class Patients {
     private String firstName;
     private String lastName;
     private String grandFatherName;
+    private String cbhiId;
     private String gender;
     private String dateOfBirth;
     private String phoneNumber;

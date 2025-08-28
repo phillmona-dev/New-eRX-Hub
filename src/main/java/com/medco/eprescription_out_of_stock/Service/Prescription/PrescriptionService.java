@@ -20,7 +20,6 @@ public interface PrescriptionService {
 
     ResponseEntity<?> searchPrescriptionByPatientId(Long patientId,  Pageable pageable);
 
-    //new
     Prescription logPrescription(PrescriptionDto prescriptionDto);
 }
 

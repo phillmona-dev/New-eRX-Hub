@@ -12,18 +12,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/erx/prescription/pharmacy")
+@RequestMapping("/api/v1/erx/prescription/pharmacy")
 public class PharmacyController {
     @Autowired
     PharmacyService pharmacyService;
-
 
     @PostMapping("/create-pharmacy")
     public ResponseEntity<Pharmacy> createPharmacy(@RequestBody PharmacyRequestDto req)
 
     {
 
-           return  pharmacyService.createPharmacy(req)  ;
+           return  pharmacyService.createPharmacy(req);
 
     }
 
@@ -33,9 +32,7 @@ public class PharmacyController {
                                               @RequestParam(value = "limit", defaultValue = "25") int limit)
       {
 
-
          Pageable pageable = PaginationUtil.paginateResource(page,limit,"id","desc");
-
 
             return  pharmacyService.getAllPharmacy(search,pageable);
 
@@ -48,7 +45,6 @@ public class PharmacyController {
            return pharmacyService.getPharmacyById(id);
 
     }
-
 
     @PutMapping("/{id}")
     public ResponseEntity<Pharmacy> updatePharmacy(@PathVariable Long id, @RequestBody PharmacyRequestDto req) {
@@ -66,7 +62,5 @@ public class PharmacyController {
        } else {
            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete pharmacy or pharmacy not found.");
        }
-
    }
-
 }

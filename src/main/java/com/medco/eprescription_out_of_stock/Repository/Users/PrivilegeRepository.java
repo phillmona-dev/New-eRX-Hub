@@ -45,5 +45,7 @@ public interface PrivilegeRepository extends JpaRepository<Privilege, Long> {
     @Query("SELECT p.privilegeName FROM Privilege p WHERE p.privilegeUuid = :privilegeUuid")
     String findPrivilegeNameByUuid(String privilegeUuid);
 
+    List<Privilege> findByPrivilegeNameIn(List<String> superAdminPrivilegeNames);
+
 //    void deleteByRoleUuid(String roleUuid);
 }

@@ -14,7 +14,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/v1/e-prescription/users/role")
+@RequestMapping("/api/v1/erx/e-prescription/users/role")
 public class RoleController {
 
     private final RoleService roleService;
@@ -30,13 +30,13 @@ public class RoleController {
     }
 
     @PutMapping(path="/{roleUuid}")
-//    @PreAuthorize("hasRole('UPDATE_ROLE')")
+    //    @PreAuthorize("hasRole('UPDATE_ROLE')")
     public ResponseEntity<?> updateRole(@PathVariable String roleUuid, @Valid @RequestBody RoleUpdateRequest roleUpdateRequest) {
         return roleService.updateRole(roleUuid, roleUpdateRequest);
     }
 
     @PutMapping("privileges/{roleUuid}")
-//    @PreAuthorize("hasRole('Update-Role')")
+    //    @PreAuthorize("hasRole('Update-Role')")
     public ResponseEntity<?> addRolePrivileges(@PathVariable String roleUuid, @Valid @RequestBody AddRolePrivilegesRequest rolePrivilegesRequest) {
         return roleService.addRolePrivileges(roleUuid, rolePrivilegesRequest);
     }
@@ -55,22 +55,23 @@ public class RoleController {
     }
 
     @DeleteMapping(path="/{roleUuid}")
-//    @PreAuthorize("hasRole('Delete-Role')")
+    //    @PreAuthorize("hasRole('Delete-Role')")
     public ResponseEntity<?> deleteRole(@PathVariable String roleUuid) {
 
         return roleService.deleteRole(roleUuid);
     }
 
     @PutMapping("delete/privileges/{roleUuid}")
-//    @PreAuthorize("hasRole('Delete-Role')")
+    //    @PreAuthorize("hasRole('Delete-Role')")
     public ResponseEntity<?> deleteRolePrivileges(@PathVariable String roleUuid, @Valid @RequestBody AddRolePrivilegesRequest rolePrivilegesRequest) {
         return roleService.deleteRolePrivileges(roleUuid, rolePrivilegesRequest);
     }
     @PostMapping(path = "/search")
-//    @PreAuthorize("hasRole('Read-Roles')")
+    //    @PreAuthorize("hasRole('Read-Roles')")
     public List<RoleResponse> searchRoles(@RequestParam("search") String searchKey, @RequestParam(value="page", defaultValue = "1") int page,
                                           @RequestParam(value="limit", defaultValue = "500") int limit){
         return roleService.searchRoles(searchKey,page,limit);
 
     }
+
 }

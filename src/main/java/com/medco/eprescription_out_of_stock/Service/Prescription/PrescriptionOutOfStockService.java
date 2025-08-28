@@ -24,7 +24,8 @@ public interface PrescriptionOutOfStockService {
 
     ResponseEntity<?> processIncomingPrescription(IncomingPrescriptionDto incomingPrescription);
 
-    ResponseEntity<PagedResponse<PrescriptionOutOfStockResponse>> advancedSearch(String identifier, String phoneNumber, String patientName, String idNumber, LocalDate prescriptionDateStart, LocalDate prescriptionDateEnd, Pageable pageable);
+    ResponseEntity<PagedResponse<PrescriptionOutOfStockResponse>> advancedSearch(String identifier, String phoneNumber, String patientName, String idNumber,
+                                                                                 LocalDate prescriptionDateStart, LocalDate prescriptionDateEnd,int Page,int limit);
 
     List<PrescriptionOutOfStockResponse> getPatientPrescriptions(Long patientId);
 

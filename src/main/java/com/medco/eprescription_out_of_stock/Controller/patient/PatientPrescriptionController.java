@@ -14,7 +14,7 @@ import org.springframework.ui.Model;
 import java.util.List;
 
 @Controller
-@RequestMapping("/patient")
+@RequestMapping("/api/v1/erx/patient")
 public class PatientPrescriptionController {
 
     @Autowired

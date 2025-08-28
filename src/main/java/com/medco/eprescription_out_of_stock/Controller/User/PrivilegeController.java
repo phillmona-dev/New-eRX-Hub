@@ -13,7 +13,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/v1/e-prescription/users/privilege")
+@RequestMapping("/api/v1/erx/e-prescription/users/privilege")
 public class PrivilegeController {
 
     private PrivilegeService privilegeService;

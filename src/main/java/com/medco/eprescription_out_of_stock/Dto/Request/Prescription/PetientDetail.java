@@ -9,6 +9,7 @@ import lombok.Setter;
 public class PetientDetail {
 
     private String patientFullName;
+    private String cbhiId;
     private String gender;
     private Integer age;
     private String phoneNumber;

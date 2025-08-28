@@ -1,6 +1,7 @@
 package com.medco.eprescription_out_of_stock.Entitiy.User;
 
 import com.medco.eprescription_out_of_stock.shared.Audit;
+import com.medco.eprescription_out_of_stock.shared.enums.Status;
 import com.medco.eprescription_out_of_stock.shared.enums.UserStatus;
 import com.medco.eprescription_out_of_stock.shared.enums.UserType;
 import jakarta.persistence.*;
@@ -64,6 +65,8 @@ public class User extends Audit {
     @Size(min = 1, max = 10)
     private String gender;
 
+    private Status status;
+
     @Size(min = 9, max = 13)
     private String mobilePhone;
 
@@ -88,7 +91,6 @@ public class User extends Audit {
 
     @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL)
     private List<Role> roles = new ArrayList<>();
-
 
 
 }

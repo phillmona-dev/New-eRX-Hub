@@ -25,7 +25,7 @@ file:
 afromessage:
   api:
     url: "https://api.afromessage.com/api/send"
-    token: eyJhbGciOiJIUzI1NiJ9.eyJpZGVudGlmaWVyIjoiOWVNWDc5YTVTNnZiTkdGVWlPUzNOZU1XYkVQYXVyS08iLCJleHAiOjE5MTEwMjIxNDIsImlhdCI6MTc1MzI1NTc0MiwianRpIjoiNjAwZDBlOTItZDAzNy00YmJlLWJiODItNDZiNjkwOTVjZDM0In0.gu6b0nl3G1NPWIp9E27LxYYIUENMOYzZvn19U82EnBg
+    token: eyJhbGciOiJIUzI1NiJ9.eyJpZGVudGlmaWVyIjoiWG5RMHRYdERVcU8yQXBVQ1ZuWGpxODVkQTB4dHVNYnciLCJleHAiOjE4OTMzOTg3MTEsImlhdCI6MTczNTYzMjMxMSwianRpIjoiMDE5YTNlNWUtNTgyMS00MzhjLTlkMDYtYThkMjI2ZDJkMDQ0In0.OmziYU_5wHCm53w9AKzakoye_OFpPUFTQOJxwkXF8jw
     identifierId: e80ad9d8-adf3-463f-80f4-7c4b39f7f164
 kenema:
   api:

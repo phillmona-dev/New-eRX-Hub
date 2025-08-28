@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/v1/prescription-out-of-stock")
+@RequestMapping("/api/v1/erx/prescription-out-of-stock")
 public class PrescriptionOutOfStockController {
 
     private final PrescriptionOutOfStockService prescriptionOutOfStockService;
@@ -87,10 +87,11 @@ public class PrescriptionOutOfStockController {
             @RequestParam(required = false) String idNumber,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate prescriptionDateStart,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate prescriptionDateEnd,
-            @PageableDefault(size = 10, sort = "prescriptionDate", direction = Sort.Direction.DESC) Pageable pageable
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "limit", defaultValue = "25") int limit
     ) {
         return prescriptionOutOfStockService.advancedSearch(
-                identifier, phoneNumber, patientName, idNumber, prescriptionDateStart, prescriptionDateEnd, pageable
+                identifier, phoneNumber, patientName, idNumber, prescriptionDateStart, prescriptionDateEnd, page, limit
         );
     }
 

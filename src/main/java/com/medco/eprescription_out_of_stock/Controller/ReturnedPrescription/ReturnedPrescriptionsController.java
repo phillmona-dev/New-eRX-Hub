@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/erx/prescription/returnedPrescriptions")
+@RequestMapping("/api/v1/erx/prescription/returnedPrescriptions")
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReturnedPrescriptionsController {
