@@ -3,7 +3,7 @@ spring:
     name: eprescription-out-of-stock
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/erx
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/erx}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
 
@@ -48,7 +48,7 @@ springdoc:
     enabled: true
 
 server:
-  port: {$APP_PORT:8300}
+  port: ${$APP_PORT:8300}
 
 api:
   key: hc_7f9a3b2e4d5c1f8e6a0d9b7c5e3f1a2d
