@@ -19,7 +19,7 @@ public class Medication {
     private String description;
     private double totalPrice;
 
-    private int numberOfDuration;
+    private String numberOfDuration;
     private String administrationId;
     private String frequencyTypeId;
     private String itemUnitId;

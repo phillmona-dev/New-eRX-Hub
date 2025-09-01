@@ -6,6 +6,7 @@ import com.medco.eprescription_out_of_stock.shared.enums.Status;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,8 +34,9 @@ public class PrescriptionOutOfStockResponse {
     private LocalDateTime prescriptionDate;
     private String prescriptionNumber;
     private double prescriptionTotalCost;
+    private Instant createdAt;
+    private String createdBy;
 
     private List<MedicineList> medicineLists;
-
 
 }

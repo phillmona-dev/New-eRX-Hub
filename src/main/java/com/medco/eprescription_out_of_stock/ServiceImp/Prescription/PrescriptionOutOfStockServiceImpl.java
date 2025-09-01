@@ -34,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.security.SecureRandom;
+import java.sql.Date;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -204,6 +206,8 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
             response.setWoreda(prescription.getWoreda());
             response.setCity(prescription.getCity());
             response.setWeight(prescription.getWeight());
+            response.setCreatedAt(prescription.getCreatedAt());
+            response.setCreatedBy(prescription.getCreatedBy());
 
             List<MedicineList> medicineLists = prescription.getMedications().stream().map(med -> {
                 MedicineList medDto = new MedicineList();
@@ -331,6 +335,33 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
 
         log.info("Starting to process incoming prescription");
 
+        // Add null checks and validation
+        if (incomingPrescription == null) {
+            log.error("Incoming prescription is null");
+            return ResponseEntity.badRequest().body("Incoming prescription data is required");
+        }
+
+        if (incomingPrescription.getPatient() == null) {
+            log.error("Patient information is missing from incoming prescription");
+            return ResponseEntity.badRequest().body("Patient information is required");
+        }
+
+        if (incomingPrescription.getPatient().getPhoneNumber() == null ||
+            incomingPrescription.getPatient().getPhoneNumber().trim().isEmpty()) {
+            log.error("Patient phone number is missing or empty");
+            return ResponseEntity.badRequest().body("Patient phone number is required");
+        }
+
+        if (incomingPrescription.getPrescriptionDetails() == null ||
+            incomingPrescription.getPrescriptionDetails().isEmpty()) {
+            log.error("Prescription details are missing or empty");
+            return ResponseEntity.badRequest().body("Prescription details are required");
+        }
+
+        log.info("Received prescription: {}", incomingPrescription);
+        log.info("Patient object: {}", incomingPrescription.getPatient());
+        log.info("Prescription details count: {}", incomingPrescription.getPrescriptionDetails().size());
+
         log.info("Searching for patient with phone number: {}", incomingPrescription.getPatient().getPhoneNumber());
         Patients patient = patientsRepository.findByPhoneNumber(incomingPrescription.getPatient().getPhoneNumber())
                 .orElse(new Patients());
@@ -377,6 +408,8 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
         BeanUtils.copyProperties(incomingPrescription, prescription, "id", "patient", "medications", "diagnosis");
         prescription.setInstitutionId(incomingPrescription.getInstitutionId().toString());
         prescription.setCbhiId(incomingPrescription.getPatient().getCbhiId());
+        prescription.setCreatedAt(Instant.now());
+        prescription.setCreatedBy(incomingPrescription.getPrescriber().getFirstName() + " " + incomingPrescription.getPrescriber().getLastName());
 
         log.info("Processing medications");
         List<Medication> medications = incomingPrescription.getPrescriptionDetails().stream()
@@ -418,7 +451,6 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
 
         log.info("Checking medicine availability");
 
-        // Collect all medicine availability data first - grouped by location
         Map<String, Map<String, String>> locationMedicineMap = new LinkedHashMap<>();
         boolean allMedicinesUnavailable = true;
 

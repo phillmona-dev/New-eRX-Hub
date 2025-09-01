@@ -27,9 +27,14 @@ afromessage:
     url: "https://api.afromessage.com/api/send"
     token: eyJhbGciOiJIUzI1NiJ9.eyJpZGVudGlmaWVyIjoiWG5RMHRYdERVcU8yQXBVQ1ZuWGpxODVkQTB4dHVNYnciLCJleHAiOjE4OTMzOTg3MTEsImlhdCI6MTczNTYzMjMxMSwianRpIjoiMDE5YTNlNWUtNTgyMS00MzhjLTlkMDYtYThkMjI2ZDJkMDQ0In0.OmziYU_5wHCm53w9AKzakoye_OFpPUFTQOJxwkXF8jw
     identifierId: e80ad9d8-adf3-463f-80f4-7c4b39f7f164
+
 kenema:
   api:
     url: https://cfb.kenemapharmacy.com
+
+#kenema:
+#  api:
+#    url: http://192.168.0.189:8990
 
 servlet:
   multipart:

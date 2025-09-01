@@ -1,8 +1,10 @@
 package com.medco.eprescription_out_of_stock.Entitiy.Prescription;
+import com.medco.eprescription_out_of_stock.shared.Audit;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -10,7 +12,7 @@ import java.util.UUID;
 @Setter
 @Getter
 @Entity
-public class PrescriptionoutOfStock {
+public class PrescriptionoutOfStock extends Audit implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

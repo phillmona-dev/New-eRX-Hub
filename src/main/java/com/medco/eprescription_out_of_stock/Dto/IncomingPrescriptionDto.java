@@ -1,75 +1,40 @@
 package com.medco.eprescription_out_of_stock.Dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class IncomingPrescriptionDto {
+    @JsonProperty("prescriber")
     private Prescriber prescriber;
+
+    @JsonProperty("patient")
     private Patient patient;
+
+    @JsonProperty("prescriptionDetails")
     private List<PrescriptionDetail> prescriptionDetails;
+
+    @JsonProperty("prescriptionDiagnosis")
     private List<PrescriptionDiagnosis> prescriptionDiagnosis;
+
+    @JsonProperty("prescriptionDate")
     private LocalDateTime prescriptionDate;
+
+    @JsonProperty("prescriptionNumber")
     private String prescriptionNumber;
+
+    @JsonProperty("rowGuid")
     private String rowGuid;
+
+    @JsonProperty("institutionId")
     private String institutionId;
+
+    @JsonProperty("prescriptionUUID")
     private String prescriptionUUID;
-
-    @Getter
-    @Setter
-    public static class Prescriber {
-        private String firstName;
-        private String middleName;
-        private String lastName;
-        private String qualification;
-        private String registrationNumber;
-        private UUID rowGuid;
-    }
-
-    @Getter
-    @Setter
-    public static class Patient {
-        private String firstName;
-        private String middleName;
-        private String lastName;
-        private String phoneNumber;
-        private String cbhiId;
-        private int age;
-        private String ageType;
-        private double weight;
-        private String sex;
-        private String houseNumber;
-        private String cardNumber;
-        private String insuranceNumber;
-        private String kebele;
-        private String rowGuid;
-        private String sponsorName;
-        private String woredaId;
-        private String paymentTypeId;
-        private String patientTypeId;
-    }
-
-    @Getter
-    @Setter
-    public static class PrescriptionDetail {
-        private String medicationName;
-        private int numberOfDuration;
-        private String administrationId;
-        private String frequencyTypeId;
-        private String itemUnitId;
-        private int quantity;
-        private String additionalNote;
-        private int orderNumber;
-    }
-
-    @Getter
-    @Setter
-    public static class PrescriptionDiagnosis {
-        private String diagnosisTypeId;
-        private String additionalInfo;
-    }
 }
