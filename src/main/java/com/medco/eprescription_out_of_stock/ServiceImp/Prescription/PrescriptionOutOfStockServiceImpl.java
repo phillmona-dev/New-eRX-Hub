@@ -7,6 +7,7 @@ import com.medco.eprescription_out_of_stock.Dto.OptMessage.OtpResponse;
 import com.medco.eprescription_out_of_stock.Dto.Request.Prescription.MedicineList;
 import com.medco.eprescription_out_of_stock.Dto.Request.Prescription.PrescriptionOutOfStockRequest;
 import com.medco.eprescription_out_of_stock.Dto.Response.Prescription.PrescriptionOutOfStockResponse;
+import com.medco.eprescription_out_of_stock.Dto.Response.PrescriptionProcessingResponse;
 import com.medco.eprescription_out_of_stock.Entitiy.ExternalSystemAuditLog;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Medication;
 import com.medco.eprescription_out_of_stock.Entitiy.Prescription.Patients;
@@ -331,194 +332,216 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
 
     @Override
     @Transactional
-    public ResponseEntity<?> processIncomingPrescription(IncomingPrescriptionDto incomingPrescription) {
+    public ResponseEntity<PrescriptionProcessingResponse> processIncomingPrescription(IncomingPrescriptionDto incomingPrescription) {
 
         log.info("Starting to process incoming prescription");
 
-        // Add null checks and validation
         if (incomingPrescription == null) {
             log.error("Incoming prescription is null");
-            return ResponseEntity.badRequest().body("Incoming prescription data is required");
+            PrescriptionProcessingResponse errorResponse = PrescriptionProcessingResponse.failure("Incoming prescription data is required");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
 
         if (incomingPrescription.getPatient() == null) {
             log.error("Patient information is missing from incoming prescription");
-            return ResponseEntity.badRequest().body("Patient information is required");
+            PrescriptionProcessingResponse errorResponse = PrescriptionProcessingResponse.failure("Patient information is required");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
 
         if (incomingPrescription.getPatient().getPhoneNumber() == null ||
             incomingPrescription.getPatient().getPhoneNumber().trim().isEmpty()) {
             log.error("Patient phone number is missing or empty");
-            return ResponseEntity.badRequest().body("Patient phone number is required");
+            PrescriptionProcessingResponse errorResponse = PrescriptionProcessingResponse.failure("Patient phone number is required");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
 
         if (incomingPrescription.getPrescriptionDetails() == null ||
             incomingPrescription.getPrescriptionDetails().isEmpty()) {
             log.error("Prescription details are missing or empty");
-            return ResponseEntity.badRequest().body("Prescription details are required");
+            PrescriptionProcessingResponse errorResponse = PrescriptionProcessingResponse.failure("Prescription details are required");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
 
-        log.info("Received prescription: {}", incomingPrescription);
-        log.info("Patient object: {}", incomingPrescription.getPatient());
-        log.info("Prescription details count: {}", incomingPrescription.getPrescriptionDetails().size());
+        try {
+            log.info("Received prescription: {}", incomingPrescription);
+            log.info("Patient object: {}", incomingPrescription.getPatient());
+            log.info("Prescription details count: {}", incomingPrescription.getPrescriptionDetails().size());
 
-        log.info("Searching for patient with phone number: {}", incomingPrescription.getPatient().getPhoneNumber());
-        Patients patient = patientsRepository.findByPhoneNumber(incomingPrescription.getPatient().getPhoneNumber())
-                .orElse(new Patients());
-        log.info("Patient found: {}", patient.getId() != null ? "Yes" : "No, creating new patient");
+            log.info("Searching for patient with phone number: {}", incomingPrescription.getPatient().getPhoneNumber());
+            Patients patient = patientsRepository.findByPhoneNumber(incomingPrescription.getPatient().getPhoneNumber())
+                    .orElse(new Patients());
+            log.info("Patient found: {}", patient.getId() != null ? "Yes" : "No, creating new patient");
 
-        log.info("Updating patient information");
-        BeanUtils.copyProperties(incomingPrescription.getPatient(), patient, "id", "patientUuid");
-        patient.setGrandFatherName(incomingPrescription.getPatient().getMiddleName());
-        patient.setGender(incomingPrescription.getPatient().getSex());
-        patient.setDateOfBirth(calculateDateOfBirth(incomingPrescription.getPatient().getAge(), incomingPrescription.getPatient().getAgeType()));
-        patient.setIdNumber(incomingPrescription.getPatient().getCardNumber());
-        patient.setKebelle(incomingPrescription.getPatient().getKebele());
-        patient.setEmployerName(incomingPrescription.getPatient().getSponsorName());
-        patient.setWoreda(incomingPrescription.getPatient().getWoredaId().toString());
-        patient.setCbhiId(incomingPrescription.getPatient().getCbhiId());
+            log.info("Updating patient information");
+            BeanUtils.copyProperties(incomingPrescription.getPatient(), patient, "id", "patientUuid");
+            patient.setGrandFatherName(incomingPrescription.getPatient().getMiddleName());
+            patient.setGender(incomingPrescription.getPatient().getSex());
+            patient.setDateOfBirth(calculateDateOfBirth(incomingPrescription.getPatient().getAge(), incomingPrescription.getPatient().getAgeType()));
+            patient.setIdNumber(incomingPrescription.getPatient().getCardNumber());
+            patient.setKebelle(incomingPrescription.getPatient().getKebele());
+            patient.setEmployerName(incomingPrescription.getPatient().getSponsorName());
+            patient.setWoreda(incomingPrescription.getPatient().getWoredaId().toString());
+            patient.setCbhiId(incomingPrescription.getPatient().getCbhiId());
 
-        log.info("Saving updated patient information");
-        Patients savedPatient = patientsRepository.save(patient);
-        log.info("Patient saved with ID: {}", savedPatient.getId());
+            log.info("Saving updated patient information");
+            Patients savedPatient = patientsRepository.save(patient);
+            log.info("Patient saved with ID: {}", savedPatient.getId());
 
-        log.info("Creating new PrescriptionoutOfStock");
-        PrescriptionoutOfStock prescription = new PrescriptionoutOfStock();
-        prescription.setPatient(savedPatient);
-        prescription.setPrescriptionUuid(incomingPrescription.getPrescriptionUUID().toString());
+            log.info("Creating new PrescriptionoutOfStock");
+            PrescriptionoutOfStock prescription = new PrescriptionoutOfStock();
+            prescription.setPatient(savedPatient);
+            prescription.setPrescriptionUuid(incomingPrescription.getPrescriptionUUID().toString());
 
-        log.info("Setting prescription details");
-        BeanUtils.copyProperties(incomingPrescription.getPatient(), prescription, "id");
-        prescription.setPatientFullName(String.join(" ",
-                incomingPrescription.getPatient().getFirstName(),
-                incomingPrescription.getPatient().getMiddleName(),
-                incomingPrescription.getPatient().getLastName()));
-        prescription.setGender(incomingPrescription.getPatient().getSex());
-        prescription.setKebele(incomingPrescription.getPatient().getKebele());
-        prescription.setCardNumber(incomingPrescription.getPatient().getCardNumber());
-        prescription.setWoredaId(incomingPrescription.getPatient().getWoredaId().toString());
+            log.info("Setting prescription details");
+            BeanUtils.copyProperties(incomingPrescription.getPatient(), prescription, "id");
+            prescription.setPatientFullName(String.join(" ",
+                    incomingPrescription.getPatient().getFirstName(),
+                    incomingPrescription.getPatient().getMiddleName(),
+                    incomingPrescription.getPatient().getLastName()));
+            prescription.setGender(incomingPrescription.getPatient().getSex());
+            prescription.setKebele(incomingPrescription.getPatient().getKebele());
+            prescription.setCardNumber(incomingPrescription.getPatient().getCardNumber());
+            prescription.setWoredaId(incomingPrescription.getPatient().getWoredaId().toString());
 
-        prescription.setPrescriberName(String.join(" ",
-                incomingPrescription.getPrescriber().getFirstName(),
-                incomingPrescription.getPrescriber().getMiddleName(),
-                incomingPrescription.getPrescriber().getLastName()));
-        prescription.setPrescriberQualification(incomingPrescription.getPrescriber().getQualification());
-        prescription.setPrescriberRegistrationNumber(incomingPrescription.getPrescriber().getRegistrationNumber());
+            prescription.setPrescriberName(String.join(" ",
+                    incomingPrescription.getPrescriber().getFirstName(),
+                    incomingPrescription.getPrescriber().getMiddleName(),
+                    incomingPrescription.getPrescriber().getLastName()));
+            prescription.setPrescriberQualification(incomingPrescription.getPrescriber().getQualification());
+            prescription.setPrescriberRegistrationNumber(incomingPrescription.getPrescriber().getRegistrationNumber());
 
-        BeanUtils.copyProperties(incomingPrescription, prescription, "id", "patient", "medications", "diagnosis");
-        prescription.setInstitutionId(incomingPrescription.getInstitutionId().toString());
-        prescription.setCbhiId(incomingPrescription.getPatient().getCbhiId());
-        prescription.setCreatedAt(Instant.now());
-        prescription.setCreatedBy(incomingPrescription.getPrescriber().getFirstName() + " " + incomingPrescription.getPrescriber().getLastName());
+            BeanUtils.copyProperties(incomingPrescription, prescription, "id", "patient", "medications", "diagnosis");
+            prescription.setInstitutionId(incomingPrescription.getInstitutionId().toString());
+            prescription.setCbhiId(incomingPrescription.getPatient().getCbhiId());
+            prescription.setCreatedAt(Instant.now());
+            prescription.setCreatedBy(incomingPrescription.getPrescriber().getFirstName() + " " + incomingPrescription.getPrescriber().getLastName());
 
-        log.info("Processing medications");
-        List<Medication> medications = incomingPrescription.getPrescriptionDetails().stream()
-                .map(detail -> {
-                    Medication med = new Medication();
-                    BeanUtils.copyProperties(detail, med, "id");
-                    med.setAdministrationId(detail.getAdministrationId().toString());
-                    med.setName(detail.getMedicationName());
-                    med.setFrequencyTypeId(detail.getFrequencyTypeId().toString());
-                    med.setItemUnitId(detail.getItemUnitId().toString());
-                    med.setPrescription(prescription);
-                    log.info("Processed medication: {}", med.getName());
-                    return med;
-                })
-                .collect(Collectors.toList());
-
-        prescription.setMedications(medications);
-
-        log.info("Processing diagnosis");
-        List<String> diagnosisList = incomingPrescription.getPrescriptionDiagnosis().stream()
-                .map(diagnosis -> diagnosis.getDiagnosisTypeId() + ": " + diagnosis.getAdditionalInfo())
-                .collect(Collectors.toList());
-        prescription.setDiagnosis(String.join(", ", diagnosisList));
-
-        log.info("Saving prescription");
-        PrescriptionoutOfStock savedPrescription = prescriptionOutOfStockRepository.save(prescription);
-        log.info("Prescription saved with ID: {}", savedPrescription.getId());
-
-        String uniqueIdentifier = generateUniqueIdentifier(savedPrescription);
-        log.info("Generated unique identifier: {}", uniqueIdentifier);
-
-        log.info("Building message for patient");
-        StringBuilder messageBuilder = new StringBuilder();
-        messageBuilder.append("Your prescription has been recorded as out of stock. ")
-                .append("Your unique identifier is: ").append(uniqueIdentifier).append(". ")
-                .append("Please use this identifier when inquiring about your prescription.\n\n");
-
-        messageBuilder.append("Medicine availability:\n");
-
-        log.info("Checking medicine availability");
-
-        Map<String, Map<String, String>> locationMedicineMap = new LinkedHashMap<>();
-        boolean allMedicinesUnavailable = true;
-
-        for (Medication medication : medications) {
-            log.info("Searching stock for medication: {}", medication.getName());
-            List<Map<String, Object>> availabilityInfo = searchMedicineFromStock(medication.getName());
-
-            if (!availabilityInfo.isEmpty()) {
-                allMedicinesUnavailable = false;
-
-                for (Map<String, Object> info : availabilityInfo) {
-                    String branchName = (String) info.get("branchName");
-                    String availability = (String) info.get("availableAmount");
-
-                    if (branchName != null && availability != null && !"Out of Stock".equals(availability)) {
-                        locationMedicineMap.computeIfAbsent(branchName, k -> new LinkedHashMap<>())
-                                .put(medication.getName(), availability);
-                    }
-                }
-                log.info("Found availability information for {}", medication.getName());
-            } else {
-                log.info("No availability information found for {}", medication.getName());
-            }
-        }
-
-        // Build location-based message
-        if (!allMedicinesUnavailable && !locationMedicineMap.isEmpty()) {
-            // Sort locations by number of available medicines (descending) and limit to 3
-            List<Map.Entry<String, Map<String, String>>> sortedLocations = locationMedicineMap.entrySet().stream()
-                    .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
-                    .limit(3)
+            log.info("Processing medications");
+            List<Medication> medications = incomingPrescription.getPrescriptionDetails().stream()
+                    .map(detail -> {
+                        Medication med = new Medication();
+                        BeanUtils.copyProperties(detail, med, "id");
+                        med.setAdministrationId(detail.getAdministrationId().toString());
+                        med.setName(detail.getMedicationName());
+                        med.setFrequencyTypeId(detail.getFrequencyTypeId().toString());
+                        med.setItemUnitId(detail.getItemUnitId().toString());
+                        med.setPrescription(prescription);
+                        log.info("Processed medication: {}", med.getName());
+                        return med;
+                    })
                     .collect(Collectors.toList());
 
-            sortedLocations.forEach(locationEntry -> {
-                String location = locationEntry.getKey();
-                Map<String, String> medicines = locationEntry.getValue();
+            prescription.setMedications(medications);
 
-                messageBuilder.append(location).append(":\n");
-                medicines.forEach((medicineName, availability) ->
-                        messageBuilder.append("  ").append(medicineName)
-                                .append(": ").append(availability).append("\n"));
-                messageBuilder.append("\n");
-            });
+            log.info("Processing diagnosis");
+            List<String> diagnosisList = incomingPrescription.getPrescriptionDiagnosis().stream()
+                    .map(diagnosis -> diagnosis.getDiagnosisTypeId() + ": " + diagnosis.getAdditionalInfo())
+                    .collect(Collectors.toList());
+            prescription.setDiagnosis(String.join(", ", diagnosisList));
 
-            // Add recommendation using the first entry from sorted list
-            if (!sortedLocations.isEmpty()) {
-                String topLocation = sortedLocations.get(0).getKey();
-                int medicineCount = sortedLocations.get(0).getValue().size();
-                messageBuilder.append("Recommendation: Visit ").append(topLocation)
-                        .append(" where ").append(medicineCount)
-                        .append(" of your medications are available.\n");
+            log.info("Saving prescription");
+            PrescriptionoutOfStock savedPrescription = prescriptionOutOfStockRepository.save(prescription);
+            log.info("Prescription saved with ID: {}", savedPrescription.getId());
+
+            String uniqueIdentifier = generateUniqueIdentifier(savedPrescription);
+            log.info("Generated unique identifier: {}", uniqueIdentifier);
+
+            log.info("Building message for patient");
+            StringBuilder messageBuilder = new StringBuilder();
+            messageBuilder.append("Your prescription has been recorded as out of stock. ")
+                    .append("Your unique identifier is: ").append(uniqueIdentifier).append(". ")
+                    .append("Please use this identifier when inquiring about your prescription.\n\n");
+
+            messageBuilder.append("Medicine availability:\n");
+
+            log.info("Checking medicine availability");
+
+            Map<String, Map<String, String>> locationMedicineMap = new LinkedHashMap<>();
+            boolean allMedicinesUnavailable = true;
+
+            for (Medication medication : medications) {
+                log.info("Searching stock for medication: {}", medication.getName());
+                List<Map<String, Object>> availabilityInfo = searchMedicineFromStock(medication.getName());
+
+                if (!availabilityInfo.isEmpty()) {
+                    allMedicinesUnavailable = false;
+
+                    for (Map<String, Object> info : availabilityInfo) {
+                        String branchName = (String) info.get("branchName");
+                        String availability = (String) info.get("availableAmount");
+
+                        if (branchName != null && availability != null && !"Out of Stock".equals(availability)) {
+                            locationMedicineMap.computeIfAbsent(branchName, k -> new LinkedHashMap<>())
+                                    .put(medication.getName(), availability);
+                        }
+                    }
+                    log.info("Found availability information for {}", medication.getName());
+                } else {
+                    log.info("No availability information found for {}", medication.getName());
+                }
             }
-        }
 
-        if (allMedicinesUnavailable) {
-            messageBuilder.append("\nWe apologize, but we were unable to check the availability of your medications at this time. Please try again later or contact your healthcare provider for alternatives.");
-        }
+            if (!allMedicinesUnavailable && !locationMedicineMap.isEmpty()) {
+                List<Map.Entry<String, Map<String, String>>> sortedLocations = locationMedicineMap.entrySet().stream()
+                        .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
+                        .limit(3)
+                        .collect(Collectors.toList());
 
-        log.info("Sending message to patient");
-        boolean messageSent = sendMessageToPatient(savedPrescription.getPhoneNumber(), messageBuilder.toString());
+                sortedLocations.forEach(locationEntry -> {
+                    String location = locationEntry.getKey();
+                    Map<String, String> medicines = locationEntry.getValue();
 
-        if (messageSent) {
-            log.info("Message sent successfully to patient");
-            return ResponseEntity.ok("Prescription processed successfully. Unique Identifier: " + uniqueIdentifier);
-        } else {
-            log.error("Failed to send message to patient");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Prescription saved but failed to send message to patient.");
+                    messageBuilder.append(location).append(":\n");
+                    medicines.forEach((medicineName, availability) ->
+                            messageBuilder.append("  ").append(medicineName)
+                                    .append(": ").append(availability).append("\n"));
+                    messageBuilder.append("\n");
+                });
+
+                if (!sortedLocations.isEmpty()) {
+                    String topLocation = sortedLocations.get(0).getKey();
+                    int medicineCount = sortedLocations.get(0).getValue().size();
+                    messageBuilder.append("Recommendation: Visit ").append(topLocation)
+                            .append(" where ").append(medicineCount)
+                            .append(" of your medications are available.\n");
+                }
+            }
+
+            if (allMedicinesUnavailable) {
+                messageBuilder.append("\nWe apologize, but we were unable to check the availability of your medications at this time. Please try again later or contact your healthcare provider for alternatives.");
+            }
+
+            log.info("Sending message to patient");
+            boolean messageSent = sendMessageToPatient(savedPrescription.getPhoneNumber(), messageBuilder.toString());
+
+            if (messageSent) {
+                log.info("Message sent successfully to patient");
+                PrescriptionProcessingResponse response = PrescriptionProcessingResponse.success(
+                        uniqueIdentifier,
+                        incomingPrescription.getPrescriptionUUID().toString()
+                );
+                response.setPatientName(incomingPrescription.getPatient().getFirstName() + " " +
+                        incomingPrescription.getPatient().getLastName());
+                response.setPatientPhone(incomingPrescription.getPatient().getPhoneNumber());
+                return ResponseEntity.ok(response);
+            } else {
+                log.error("Failed to send message to patient");
+                PrescriptionProcessingResponse response = PrescriptionProcessingResponse.partialSuccess(
+                        uniqueIdentifier,
+                        incomingPrescription.getPrescriptionUUID().toString(),
+                        "Prescription saved but failed to send message to patient."
+                );
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+        } catch (Exception e) {
+            log.error("An error occurred while processing the incoming prescription: {}", e.getMessage(), e);
+
+            String userFriendlyMessage = getUserFriendlyErrorMessage(e);
+
+            throw new CustomApplicationException(
+                    userFriendlyMessage,
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
@@ -760,6 +783,52 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
     private String generateUniqueIdentifier(PrescriptionoutOfStock prescription) {
         return "OOS-" + prescription.getId() + "-" +
                 prescription.getPrescriptionDate().format(DateTimeFormatter.BASIC_ISO_DATE);
+    }
+
+    private String getUserFriendlyErrorMessage(Exception e) {
+        String message = e.getMessage();
+
+        if (message == null) {
+            return "An unexpected error occurred while processing your prescription.";
+        }
+
+        if (message.contains("duplicate key value violates unique constraint")) {
+            if (message.contains("prescription_uuid")) {
+                return "This prescription has already been processed. Please check if you've already submitted this prescription.";
+            } else if (message.contains("phone_number")) {
+                return "A patient with this phone number already exists in our system.";
+            } else if (message.contains("card_number")) {
+                return "A patient with this card number already exists in our system.";
+            } else {
+                return "This information already exists in our system. Please verify your data.";
+            }
+        }
+
+        if (message.contains("Connection refused") || message.contains("Connection timeout")) {
+            return "Unable to connect to the database. Please try again in a few moments.";
+        }
+
+        if (e instanceof NullPointerException) {
+            return "Some required information is missing. Please ensure all fields are properly filled.";
+        }
+
+        if (message.contains("SocketTimeoutException") || message.contains("timeout")) {
+            return "The request timed out. Please try again.";
+        }
+
+        if (message.contains("IOException") || message.contains("connection")) {
+            return "Network connection error. Please check your internet connection and try again.";
+        }
+
+        if (message.contains("constraint") || message.contains("invalid")) {
+            return "Invalid data provided. Please check your input and try again.";
+        }
+
+        if (message.contains("SQL") || message.contains("database")) {
+            return "A database error occurred. Please try again later.";
+        }
+
+        return "An error occurred while processing your prescription. Please try again or contact support if the issue persists.";
     }
 
 }

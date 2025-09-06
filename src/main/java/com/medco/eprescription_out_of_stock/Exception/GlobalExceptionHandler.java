@@ -33,8 +33,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<ErrorMessage>(message, HttpStatus.NOT_FOUND);
     }
 
-
-
     @ExceptionHandler( PrescriptionNotFoundException.class)
     public ResponseEntity<ErrorMessage> BadRequestExceptionHandler( PrescriptionNotFoundException ex,WebRequest request) {
         ErrorMessage message = new ErrorMessage(
@@ -46,14 +44,40 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<ErrorMessage>(message, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(CustomApplicationException.class)
+    public ResponseEntity<ErrorMessage> customApplicationExceptionHandler(CustomApplicationException ex, WebRequest request) {
+        ErrorMessage message = new ErrorMessage(
+                ex.getStatus().value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<ErrorMessage>(message, ex.getStatus());
+    }
+
 
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorMessage> globalExceptionHandler(Exception ex, WebRequest request) {
+        String errorMessage = ex.getMessage();
+
+        if (errorMessage != null && errorMessage.contains("Transaction silently rolled back")) {
+            Throwable cause = ex.getCause();
+            if (cause != null && cause.getCause() != null) {
+                errorMessage = cause.getCause().getMessage();
+            } else if (cause != null) {
+                errorMessage = cause.getMessage();
+            }
+        }
+
+        if (errorMessage != null && errorMessage.contains("Transaction silently rolled back")) {
+            errorMessage = "An error occurred while processing your request. Please try again later.";
+        }
+
         ErrorMessage message = new ErrorMessage(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 new Date(),
-                ex.getMessage(),
+                errorMessage,
                 request.getDescription(false));
 
         return new ResponseEntity<ErrorMessage>(message, HttpStatus.INTERNAL_SERVER_ERROR);
