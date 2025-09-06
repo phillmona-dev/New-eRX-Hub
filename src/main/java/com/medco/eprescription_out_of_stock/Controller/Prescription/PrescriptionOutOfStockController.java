@@ -93,6 +93,23 @@ public class PrescriptionOutOfStockController {
         );
     }
 
+    @RequiresApiKey
+    @GetMapping("/integration/advanced-search")
+    public ResponseEntity<PagedResponse<PrescriptionOutOfStockResponse>> integrationAdvancedSearch(
+            @RequestParam(required = false) String identifier,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) String patientName,
+            @RequestParam(required = false) String idNumber,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate prescriptionDateStart,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate prescriptionDateEnd,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "limit", defaultValue = "25") int limit
+    ) {
+        return prescriptionOutOfStockService.advancedSearch(
+                identifier, phoneNumber, patientName, idNumber, prescriptionDateStart, prescriptionDateEnd, page, limit
+        );
+    }
+
 
     @GetMapping("/patient-prescriptions")
     public String getPatientPrescriptions(@RequestParam Long patientId, Model model) {

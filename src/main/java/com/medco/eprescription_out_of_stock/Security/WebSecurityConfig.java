@@ -98,7 +98,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 "/api/v1/erx/e-prescription/auth/users/sign-up",
                                 "/api/v1/erx/prescription-out-of-stock/incoming",
                                 "/api/v1/erx/e-prescription/users/privilege",
-                                "/api/v1/erx/e-prescription/users/role"
+                                "/api/v1/erx/e-prescription/users/role",
+                                "/api/v1/erx/prescription-out-of-stock/integration/advanced-search"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
