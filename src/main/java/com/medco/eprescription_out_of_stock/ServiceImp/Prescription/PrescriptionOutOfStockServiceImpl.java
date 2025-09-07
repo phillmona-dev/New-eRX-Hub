@@ -730,6 +730,7 @@ public class PrescriptionOutOfStockServiceImpl implements PrescriptionOutOfStock
         );
 
         return ResponseEntity.ok(response);
+
     }
 
     @Override

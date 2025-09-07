@@ -93,7 +93,7 @@ public class PrescriptionOutOfStockController {
         );
     }
 
-    @RequiresApiKey
+//    @RequiresApiKey
     @GetMapping("/integration/advanced-search")
     public ResponseEntity<PagedResponse<PrescriptionOutOfStockResponse>> integrationAdvancedSearch(
             @RequestParam(required = false) String identifier,
@@ -109,7 +109,6 @@ public class PrescriptionOutOfStockController {
                 identifier, phoneNumber, patientName, idNumber, prescriptionDateStart, prescriptionDateEnd, page, limit
         );
     }
-
 
     @GetMapping("/patient-prescriptions")
     public String getPatientPrescriptions(@RequestParam Long patientId, Model model) {

@@ -41,21 +41,21 @@ public interface PrescriptionOutOfStockRepository extends JpaRepository<Prescrip
 
     @Query(value = """
     SELECT p.* FROM prescriptionout_of_stock p 
-    WHERE p.prescription_uuid = COALESCE(:identifier, p.prescription_uuid) AND 
-          p.phone_number = COALESCE(:phoneNumber, p.phone_number) AND 
-          (p.patient_full_name::text ILIKE COALESCE('%' || CAST(:patientName AS text) || '%', p.patient_full_name::text)) AND 
-          p.id_number = COALESCE(:idNumber, p.id_number) AND 
-          p.prescription_date >= COALESCE(CAST(:prescriptionDateStart AS timestamp), p.prescription_date) AND 
-          p.prescription_date <= COALESCE(CAST(:prescriptionDateEnd AS timestamp), p.prescription_date)
+    WHERE (NULLIF(:identifier, '') IS NULL OR p.prescription_uuid = :identifier) AND 
+          (NULLIF(:phoneNumber, '') IS NULL OR p.phone_number = :phoneNumber) AND 
+          (NULLIF(:patientName, '') IS NULL OR p.patient_full_name::text ILIKE '%' || CAST(:patientName AS text) || '%') AND 
+          (NULLIF(:idNumber, '') IS NULL OR p.id_number = :idNumber) AND 
+          (CAST(:prescriptionDateStart AS timestamp) IS NULL OR p.prescription_date >= CAST(:prescriptionDateStart AS timestamp)) AND 
+          (CAST(:prescriptionDateEnd AS timestamp) IS NULL OR p.prescription_date <= CAST(:prescriptionDateEnd AS timestamp))
     """,
     countQuery = """
     SELECT COUNT(*) FROM prescriptionout_of_stock p 
-    WHERE p.prescription_uuid = COALESCE(:identifier, p.prescription_uuid) AND 
-          p.phone_number = COALESCE(:phoneNumber, p.phone_number) AND 
-          (p.patient_full_name::text ILIKE COALESCE('%' || CAST(:patientName AS text) || '%', p.patient_full_name::text)) AND 
-          p.id_number = COALESCE(:idNumber, p.id_number) AND 
-          p.prescription_date >= COALESCE(CAST(:prescriptionDateStart AS timestamp), p.prescription_date) AND 
-          p.prescription_date <= COALESCE(CAST(:prescriptionDateEnd AS timestamp), p.prescription_date)
+    WHERE (NULLIF(:identifier, '') IS NULL OR p.prescription_uuid = :identifier) AND 
+          (NULLIF(:phoneNumber, '') IS NULL OR p.phone_number = :phoneNumber) AND 
+          (NULLIF(:patientName, '') IS NULL OR p.patient_full_name::text ILIKE '%' || CAST(:patientName AS text) || '%') AND 
+          (NULLIF(:idNumber, '') IS NULL OR p.id_number = :idNumber) AND 
+          (CAST(:prescriptionDateStart AS timestamp) IS NULL OR p.prescription_date >= CAST(:prescriptionDateStart AS timestamp)) AND 
+          (CAST(:prescriptionDateEnd AS timestamp) IS NULL OR p.prescription_date <= CAST(:prescriptionDateEnd AS timestamp))
     """,
     nativeQuery = true)
     Page<PrescriptionoutOfStock> advancedSearch(
